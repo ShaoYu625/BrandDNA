@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Jester archetype">
+  <defs><linearGradient id="g" x1="36" y1="200" x2="204" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset=".5" stop-color="#ef4444"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+  <circle cx="120" cy="120" r="102" fill="url(#g)"/>
+  <circle cx="120" cy="125" r="58" fill="#fff"/>
+  <circle cx="96" cy="111" r="8" fill="#ef4444"/>
+  <circle cx="144" cy="111" r="8" fill="#ef4444"/>
+  <path d="M90 143c16 19 44 19 60 0" fill="none" stroke="#ef4444" stroke-width="10" stroke-linecap="round"/>
+  <path d="M70 74l31 28 19-42 19 42 31-28-7 47H77l-7-47z" fill="#fff"/>
+</svg>

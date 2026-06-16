@@ -1,0 +1,15 @@
+flask==3.0.0
+flask-cors==4.0.0
+python-dotenv==1.0.0
+pandas==2.1.4
+numpy==1.26.2
+werkzeug==3.0.1
+openai>=2.0.0
+pillow>=12.0.0
+playwright>=1.45.0
+beautifulsoup4>=4.12.3
+pypdf>=4.3.1
+python-docx>=1.1.2
+python-pptx>=0.6.23
+openpyxl>=3.1.5
+xlrd>=2.0.1

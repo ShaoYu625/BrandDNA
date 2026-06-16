@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Magician archetype">
+  <defs><linearGradient id="g" x1="38" y1="202" x2="202" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#7c3aed"/><stop offset=".5" stop-color="#2563eb"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs>
+  <circle cx="120" cy="120" r="102" fill="url(#g)"/>
+  <path d="M72 174l96-96" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+  <path d="M145 55l8 21 22 8-22 8-8 22-8-22-21-8 21-8 8-21zM83 66l5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13zM166 142l6 16 16 6-16 6-6 16-6-16-16-6 16-6 6-16z" fill="#fff"/>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Hero archetype">
+  <defs><linearGradient id="g" x1="42" y1="210" x2="198" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset=".5" stop-color="#f59e0b"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>
+  <circle cx="120" cy="120" r="102" fill="url(#g)"/>
+  <path d="M120 50l58 22v43c0 42-24 70-58 89-34-19-58-47-58-89V72l58-22z" fill="#fff"/>
+  <path d="M120 75l14 31 34 4-25 22 7 33-30-17-30 17 7-33-25-22 34-4 14-31z" fill="#2563eb"/>
+</svg>

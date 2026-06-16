@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Everyman archetype">
+  <defs><linearGradient id="g" x1="40" y1="206" x2="202" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset=".5" stop-color="#22c55e"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>
+  <circle cx="120" cy="120" r="102" fill="url(#g)"/>
+  <circle cx="120" cy="86" r="25" fill="#fff"/>
+  <circle cx="77" cy="102" r="18" fill="#fff" opacity=".95"/>
+  <circle cx="163" cy="102" r="18" fill="#fff" opacity=".95"/>
+  <path d="M76 164c5-28 24-45 44-45s39 17 44 45v15H76v-15zM43 173c4-25 17-40 34-40 11 0 21 7 27 19M137 152c7-12 17-19 28-19 17 0 30 15 34 40" fill="#fff"/>
+</svg>

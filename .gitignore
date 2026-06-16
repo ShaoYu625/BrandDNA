@@ -1,0 +1,30 @@
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+
+# Python environments
+.venv/
+venv/
+env/
+
+# Python cache and test cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime database, user data, generated outputs, and logs
+runtime/
+data/
+rawdata/
+artifacts/
+uploads/
+logs/
+*.log
+
+# Codex/editor scratch
+.codex_tmp/
+.vscode/
+.idea/

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Lover archetype">
+  <defs><linearGradient id="g" x1="38" y1="202" x2="202" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#f97316"/><stop offset=".48" stop-color="#ec4899"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+  <circle cx="120" cy="120" r="102" fill="url(#g)"/>
+  <path d="M120 178S62 142 62 96c0-25 18-43 42-43 14 0 27 7 36 19 9-12 22-19 36-19 24 0 42 18 42 43 0 46-58 82-58 82z" fill="#fff"/>
+  <path d="M86 95c2-11 10-18 21-18" stroke="#ec4899" stroke-width="9" stroke-linecap="round"/>
+</svg>

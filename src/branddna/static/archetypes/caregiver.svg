@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Caregiver archetype">
+  <defs><linearGradient id="g" x1="36" y1="204" x2="204" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset=".5" stop-color="#22c55e"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+  <circle cx="120" cy="120" r="102" fill="url(#g)"/>
+  <path d="M120 142s-38-22-38-51c0-17 12-29 28-29 9 0 17 4 23 12 6-8 14-12 23-12 16 0 28 12 28 29 0 29-38 51-38 51z" fill="#fff"/>
+  <path d="M62 148c22-4 39 3 55 22h6c16-19 33-26 55-22M75 173h90" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+</svg>
