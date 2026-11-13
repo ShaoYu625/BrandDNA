@@ -1,1 +1,0 @@
-"""BrandDNA application package."""

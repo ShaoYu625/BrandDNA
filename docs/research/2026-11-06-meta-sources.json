@@ -1,0 +1,207 @@
+{
+  "research_date": "2026-11-06",
+  "research_timezone": "Asia/Taipei",
+  "method": "Public HTTPS GET; locale=en_US; no authentication. Hashes refer to locally extracted visible research text, not the original HTML.",
+  "sources": [
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform",
+      "http_status": 200,
+      "title": "Instagram Platform | Meta for Developers",
+      "document_updated": "Sep 16, 2026",
+      "research_text_sha256": "d5b2188d15d0312c918f7935bb79f5369b2ca7e50cb0f3a3d6d3e93ae3949fe5",
+      "research_text_characters": 2128
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/pages-api/posts",
+      "http_status": 200,
+      "title": "Posts | Meta for Developers",
+      "document_updated": "Apr 17, 2026",
+      "research_text_sha256": "d5e1199a8410f7f82a848262ca216c5b0b23c70d69caec6c1f47e7a57d3e1b89",
+      "research_text_characters": 6476
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/insights",
+      "http_status": 200,
+      "title": "Instagram Platform insights | Meta for Developers",
+      "document_updated": "Oct 20, 2026",
+      "research_text_sha256": "5a9e64f7261a30d2f85dcdb273de55da4ab5ac7cd85c5c2fb2e7765da4b2ef8c",
+      "research_text_characters": 6983
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login",
+      "http_status": 200,
+      "title": "Instagram API with Unified Login | Meta for Developers",
+      "document_updated": "Oct 13, 2026",
+      "research_text_sha256": "acb71a541d25921a236ab21d7f15e701e2bb4d3dcbdde831a465189c9dbedaf9",
+      "research_text_characters": 2833
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/authentication",
+      "http_status": 200,
+      "title": "Authentication and access tokens | Meta for Developers",
+      "document_updated": "Oct 13, 2026",
+      "research_text_sha256": "28cbb717cbff42186daadb50e1886c748d6b6bdb837842644b36a3794d27f3cb",
+      "research_text_characters": 3598
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/permissions",
+      "http_status": 200,
+      "title": "Permissions for the Instagram API with Unified Login | Meta for Developers",
+      "document_updated": "Oct 14, 2026",
+      "research_text_sha256": "4b41f74ae746c5c103402c3a7944beace99843f477300e556f9315ea277cacc0",
+      "research_text_characters": 3241
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/eligibility-and-troubleshooting",
+      "http_status": 200,
+      "title": "Eligibility and troubleshooting | Meta for Developers",
+      "document_updated": "Oct 13, 2026",
+      "research_text_sha256": "957480c16359815f4e25805b084dd783dd56ea41b861a685c9d26fbf0fa89a5d",
+      "research_text_characters": 3937
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/content-publishing",
+      "http_status": 200,
+      "title": "Content Publishing | Meta for Developers",
+      "document_updated": "Oct 20, 2026",
+      "research_text_sha256": "81130c66f4e83a014eb0c0b09d3c914a92978b2ea868439b325d3ef34e0a5da1",
+      "research_text_characters": 14993
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/reference/instagram-media/insights",
+      "http_status": 200,
+      "title": "Instagram Media Insights | Meta for Developers",
+      "document_updated": "Sep 11, 2026",
+      "research_text_sha256": "a8e5949100d65d6c46fcb560d6ae8a05e0a8563fe31e798e2bab880b6dc0a3a9",
+      "research_text_characters": 12935
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/pages-api/platforminsights/page",
+      "http_status": 200,
+      "title": "Get Page Insights | Meta for Developers",
+      "document_updated": "May 7, 2026",
+      "research_text_sha256": "fdf54c53584cbc6d198970b1dee43047a2f59de37304cd4dcb31a089a030ed4c",
+      "research_text_characters": 11542
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/pages-api/overview",
+      "http_status": 200,
+      "title": "Pages API overview | Meta for Developers",
+      "document_updated": "May 5, 2025",
+      "research_text_sha256": "ddf16c96b918a46b4eb2b9d93dc6f3460b1006bcba5d3f44f47e76bf7d50a03f",
+      "research_text_characters": 5675
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/get-started",
+      "http_status": 200,
+      "title": "Get started with the Instagram API with Unified Login | Meta for Developers",
+      "document_updated": "Oct 27, 2026",
+      "research_text_sha256": "e96ab703c761803d79e05df37f668ec76e19f378c00e1e207c1d8bec7f5135c2",
+      "research_text_characters": 9301
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/business-onboarding",
+      "http_status": 200,
+      "title": "Business onboarding | Meta for Developers",
+      "document_updated": "Oct 13, 2026",
+      "research_text_sha256": "fb7b2120567ac471d08f35a45d5b16239d0300c9824084c67dedcd371f9a909d",
+      "research_text_characters": 3621
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-unified-login/migration",
+      "http_status": 200,
+      "title": "Migrate to the Instagram API with Unified Login | Meta for Developers",
+      "document_updated": "Oct 13, 2026",
+      "research_text_sha256": "e6fbe872a2a4cf9d28084800c240a9a5a94d8626aeaed34af67c7ec908077241",
+      "research_text_characters": 3347
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/app-review",
+      "http_status": 200,
+      "title": "App Review for Instagram API | Meta for Developers",
+      "document_updated": "Jun 30, 2026",
+      "research_text_sha256": "c1e29cb8845e3109c0a9134fed7d24c0726b8dec9bf5c275c26136f9bb4faeeb",
+      "research_text_characters": 7160
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/development/permissions",
+      "http_status": 200,
+      "title": "Permissions Reference for Meta Technologies APIs | Meta for Developers",
+      "document_updated": "Oct 19, 2026",
+      "research_text_sha256": "ac61b3442ec90feadc65230db7fcacff564ca97b101f8b876a2f547e4722395b",
+      "research_text_characters": 80696
+    },
+    {
+      "url": "https://developers.facebook.com/docs/graph-api/reference/page/photos",
+      "http_status": 200,
+      "title": "Graph API Reference v27.0: Page Photos - Documentation - Meta for Developers",
+      "document_updated": null,
+      "research_text_sha256": "45e636f63e90ec4671314f7e0fe661d6691698d094f54d1e4541536f11d95d31",
+      "research_text_characters": 23639
+    },
+    {
+      "url": "https://developers.facebook.com/docs/graph-api/reference/page/feed",
+      "http_status": 200,
+      "title": "Feed - Documentation - Meta for Developers",
+      "document_updated": null,
+      "research_text_sha256": "61a72a02ee02aeb0b7985d8e5e11afbda8d11f99b217cf3bd3bc907e0cf37570",
+      "research_text_characters": 38565
+    },
+    {
+      "url": "https://developers.facebook.com/docs/graph-api/reference/insights",
+      "http_status": 200,
+      "title": "Page/insights - Graph API - Documentation - Meta for Developers",
+      "document_updated": null,
+      "research_text_sha256": "3f3e3b80693adf0bf971b9d84e447ec184c4092071cf48890c77e0ea08ea5f4a",
+      "research_text_characters": 48793
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-user/media",
+      "http_status": 200,
+      "title": "IG User Media | Meta for Developers",
+      "document_updated": "Sep 28, 2026",
+      "research_text_sha256": "698b068026c05d421b2bb1f71d6ce08fd4ed0f8865140ecb40763bcc2e2f843b",
+      "research_text_characters": 20051
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/pages-api/platforminsights/page/deprecated-metrics",
+      "http_status": 200,
+      "title": "Deprecated Facebook Page Insights Metrics | Meta for Developers",
+      "document_updated": "Mar 2, 2026",
+      "research_text_sha256": "68ed21c18030b82d00c7455d3f0df53081720d4e7e8c3fed02076db0191f95bc",
+      "research_text_characters": 4792
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/webhooks/setup",
+      "http_status": 200,
+      "title": "Set up Instagram Webhooks | Meta for Developers",
+      "document_updated": "Oct 20, 2026",
+      "research_text_sha256": "fecf3d5e59c401cb395575dd54af18ffe2ad105020efc57d441eca025fbd3d6a",
+      "research_text_characters": 15159
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-facebook-login",
+      "http_status": 200,
+      "title": "Instagram API with Facebook Login | Meta for Developers",
+      "document_updated": "Mar 3, 2025",
+      "research_text_sha256": "a59cd5fafb655aaaf3403a079617419baa70acf6af2d876b3f6d4178ebec2d5c",
+      "research_text_characters": 1608
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-user/media_publish",
+      "http_status": 200,
+      "title": "IG User Media Publish | Meta for Developers",
+      "document_updated": "Sep 28, 2026",
+      "research_text_sha256": "6a4a2f5790c937415a63fd220c56c5b03a42e438012e8ad9fb35c181e7f718c7",
+      "research_text_characters": 3309
+    },
+    {
+      "url": "https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/migration-guide",
+      "http_status": 200,
+      "title": "Migrate your App | Meta for Developers",
+      "document_updated": "Oct 1, 2026",
+      "research_text_sha256": "4eba90836e0986f13d3e5185ee5a9a26373275e1e607936086d33bd827aa2410",
+      "research_text_characters": 13393
+    }
+  ]
+}

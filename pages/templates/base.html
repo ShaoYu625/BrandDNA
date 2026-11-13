@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BrandDNA Analytics{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="/static/brand/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/brand/favicon-32.png?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/brand/favicon-192.png?v=2">
+    <link rel="apple-touch-icon" href="/static/brand/apple-touch-icon.png?v=2">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3f63e6;
+            --primary-soft: #eef2ff;
+            --ink: #111827;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --surface: #ffffff;
+            --bg: #f6f7fb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #38bdf8;
+            --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --sidebar-width: 248px;
+            --sidebar-rail-width: 78px;
+            --sidebar-logo-size: 46px;
+            --sidebar-logo-font-size: 1.3rem;
+            --sidebar-logo-padding: 18px 10px;
+            --sidebar-hint-size: 32px;
+            --sidebar-nav-height: 48px;
+            --sidebar-nav-margin: 2px 0;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 15px;
+            overflow: hidden;
+        }
+
+        .app-shell {
+            height: 100dvh;
+            display: grid;
+            grid-template-columns: 248px minmax(0, 1fr);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--line);
+            display: grid;
+            grid-template-rows: auto auto auto 1fr;
+            min-height: 0;
+            overflow: visible;
+            position: relative;
+            z-index: 2;
+        }
+
+        .brand-logo {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 18px 18px;
+            color: var(--ink);
+            text-decoration: none;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .logo-mark, .top-plan-icon {
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+        }
+
+        .logo-mark {
+            flex: 0 0 auto;
+            width: 46px;
+            height: 46px;
+            padding: 3px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+        .logo-mark img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .brand-wordmark {
+            display: block;
+            width: 132px;
+            max-width: 100%;
+            height: auto;
+        }
+        .brand-subtitle {
+            margin-top: 2px;
+        }
+        .top-plan-card {
+            appearance: none;
+            min-width: 0;
+            width: min(190px, 24vw);
+            height: 42px;
+            padding: 5px 10px 5px 6px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 32px minmax(0, 1fr);
+            gap: 8px;
+            align-items: center;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+        .top-plan-card:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        .top-plan-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            color: #fff;
+            background: linear-gradient(135deg, #3f63e6, #10b981);
+            font-size: 0.82rem;
+        }
+        .top-plan-name {
+            color: var(--ink);
+            font-size: 0.82rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .top-plan-meta {
+            color: var(--muted);
+            font-size: 0.68rem;
+            line-height: 1.1;
+            margin-top: 2px;
+        }
+
+        .nav-list { padding: 6px 0 18px; overflow: auto; min-height: 0; }
+        .nav-label { padding: 10px 22px 6px; color: var(--muted); font-size: 0.72rem; font-weight: 800; }
+        .nav-link {
+            height: 48px;
+            margin: 2px 0;
+            padding: 0 22px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--muted);
+            font-weight: 700;
+            text-decoration: none;
+            border-right: 3px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color);
+            background: var(--primary-soft);
+            border-right-color: var(--primary-color);
+        }
+        .nav-link i { width: 20px; text-align: center; }
+        .feature-lockable { position: relative; }
+        .feature-locked {
+            position: relative;
+            overflow: hidden;
+            filter: grayscale(0.95);
+        }
+        .feature-lock-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            gap: 4px;
+            padding: 10px;
+            border-radius: inherit;
+            background: rgba(17, 24, 39, 0.76);
+            color: #fff;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 900;
+            line-height: 1.25;
+            pointer-events: none;
+        }
+        .feature-lock-overlay i { font-size: 1rem; }
+        .nav-link.feature-locked {
+            color: #9ca3af;
+            background: #e5e7eb;
+            border-right-color: transparent;
+        }
+        .nav-link .feature-lock-overlay {
+            padding: 4px;
+            border-radius: 0;
+            font-size: 0.7rem;
+        }
+        .btn.feature-locked {
+            color: #9ca3af !important;
+            border-color: #d1d5db !important;
+            background: #e5e7eb !important;
+        }
+        .btn.feature-locked .feature-lock-overlay {
+            font-size: 0.68rem;
+            padding: 4px 6px;
+        }
+        .sidebar-expand-hint {
+            display: none;
+            position: relative;
+            z-index: 6;
+            width: var(--sidebar-hint-size);
+            height: var(--sidebar-hint-size);
+            margin: 8px auto 10px;
+            padding: 0;
+            border: 1px solid #dbe2f0;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+            color: var(--primary-color);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+            cursor: pointer;
+            place-items: center;
+            transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+        }
+        .sidebar-expand-hint:hover,
+        .sidebar-expand-hint:focus-visible {
+            transform: translateY(-1px);
+            color: #fff;
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #3f63e6, #3150c7);
+            box-shadow: 0 10px 22px rgba(63, 99, 230, 0.24);
+            outline: 0;
+        }
+
+        .main-content {
+            min-width: 0;
+            height: 100dvh;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            overflow: hidden;
+        }
+
+        .top-header {
+            min-height: 76px;
+            padding: 14px 24px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .page-title { margin: 0; font-size: 1.55rem; font-weight: 900; letter-spacing: 0; line-height: 1.15; }
+        .page-subtitle { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+        .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+
+        .content-area {
+            min-height: 0;
+            overflow: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            padding: 16px 18px;
+            scrollbar-width: thin;
+        }
+        .content-area::-webkit-scrollbar { width: 8px; height: 8px; }
+        .content-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+        .page-fit { height: 100%; min-height: 0; overflow: hidden; }
+        .scroll-panel { min-height: 0; overflow: auto; scrollbar-width: thin; }
+        .scroll-panel::-webkit-scrollbar { width: 8px; height: 8px; }
+        .scroll-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+
+        .dash-card, .dashboard-card, .panel-card, .work-card, .gk-card, .sim-card, .hub-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .dash-card { padding: 14px; min-width: 0; min-height: 0; overflow: hidden; }
+        .dash-card.scroll-panel { overflow: auto; }
+        .card-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .card-title-row h2, .card-title-row h3 { margin: 0; font-size: 1rem; font-weight: 900; line-height: 1.3; min-width: 0; }
+        .card-title-row > .d-flex { flex-wrap: wrap; justify-content: flex-end; }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            white-space: nowrap;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        .tag-blue { background: var(--primary-soft); color: var(--primary-color); }
+        .tag-ai-usage { background: #ecfeff; color: #0e7490; }
+        .tag-green { background: #dcfce7; color: #047857; }
+        .tag-yellow { background: #fef3c7; color: #b45309; }
+        .tag-red { background: #fee2e2; color: #b91c1c; }
+
+        .btn-primary-gradient {
+            border: 0;
+            color: #fff;
+            background: linear-gradient(135deg, #3f63e6, #3150c7);
+            border-radius: 8px;
+            font-weight: 800;
+            min-height: 42px;
+            white-space: normal;
+        }
+        .btn-primary-gradient:hover { color: #fff; background: linear-gradient(135deg, #3150c7, #2b43a5); }
+        .btn-outline-custom {
+            border: 1px solid var(--line);
+            color: var(--ink);
+            background: #fff;
+            border-radius: 8px;
+            font-weight: 800;
+            min-height: 38px;
+            white-space: normal;
+        }
+        .btn-outline-custom:hover { border-color: var(--primary-color); color: var(--primary-color); background: var(--primary-soft); }
+        .btn-reset {
+            border-color: #fecaca;
+            color: #b91c1c;
+            background: #fff;
+        }
+        .btn-reset:hover {
+            border-color: #ef4444;
+            color: #991b1b;
+            background: #fef2f2;
+        }
+
+        .metric { font-size: 2.35rem; font-weight: 900; line-height: 1; }
+        .muted { color: var(--muted); }
+        .fine { font-size: 0.78rem; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .min-w-0 { min-width: 0; }
+
+        .form-control, .form-select, textarea.form-control {
+            border-color: var(--line);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        textarea { resize: none; }
+
+        .progress-track {
+            height: 9px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+        .progress-fill { height: 100%; border-radius: 999px; background: var(--primary-color); }
+
+        .toast-stack {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 5000;
+            display: grid;
+            gap: 8px;
+        }
+        .app-toast {
+            max-width: 360px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #111827;
+            color: #fff;
+            box-shadow: var(--shadow);
+            font-size: 0.88rem;
+        }
+        .app-toast.error { background: #991b1b; }
+
+        .source-row, .job-row, .artifact-row, .todo-row, .workflow-link,
+        .history-row, .brief-box, .rule-card, .draft-card, .violation-card,
+        .safe-card, .persona-card, .response-card, .summary-card, .benchmark-row,
+        .priority-row {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .source-row > .d-flex, .job-row > .d-flex, .artifact-row > .d-flex,
+        .history-row > .d-flex, .response-card > .d-flex {
+            min-width: 0;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        @media (max-height: 760px) and (min-width: 721px) {
+            body { font-size: 14px; }
+            .top-header { min-height: 66px; padding: 10px 18px; }
+            .content-area { padding: 12px 14px; }
+            .dash-card { padding: 12px; }
+            .card-title-row { margin-bottom: 10px; }
+            .metric { font-size: 2.05rem; }
+            .nav-link { height: 44px; }
+        }
+
+        @media (max-width: 990px) {
+            .app-shell { grid-template-columns: 78px minmax(0, 1fr); }
+            .sidebar { cursor: default; --sidebar-rail-width: 78px; }
+            .brand-logo { justify-content: center; padding: 18px 10px; }
+            .brand-logo > div:last-child, .nav-label, .nav-link span { display: none; }
+            .nav-link { justify-content: center; padding: 0; }
+            .sidebar-expand-hint { display: grid; }
+            .content-area { padding: 14px; }
+            .top-header { min-height: 72px; padding: 12px 16px; }
+            .page-title { font-size: 1.35rem; }
+            .top-plan-card { width: 168px; }
+            .top-plan-meta { display: none; }
+        }
+
+        @media (max-width: 640px) {
+            body { font-size: 14px; }
+            .app-shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+            .sidebar {
+                grid-row: 2;
+                grid-template-rows: auto;
+                border-right: 0;
+                border-top: 1px solid var(--line);
+                height: 64px;
+                overflow: hidden;
+                cursor: default;
+            }
+            .brand-logo, .nav-label, .sidebar-expand-hint { display: none; }
+            .nav-list {
+                display: grid;
+                grid-auto-flow: column;
+                grid-auto-columns: minmax(64px, 1fr);
+                padding: 0;
+                overflow-x: auto;
+            }
+            .nav-link {
+                height: 64px;
+                border-right: 0;
+                border-top: 3px solid transparent;
+                font-size: 1rem;
+            }
+            .nav-link.active { border-top-color: var(--primary-color); }
+            .main-content { grid-row: 1; height: calc(100dvh - 64px); }
+            .page-subtitle { display: none; }
+            .top-plan-card { display: none; }
+            .top-header { min-height: 62px; padding: 10px 12px; gap: 8px; }
+            .page-title { font-size: 1.22rem; }
+            .header-actions { gap: 6px; flex-wrap: nowrap; }
+            .header-actions .tag { padding: 5px 7px; font-size: 0.7rem; }
+            .header-actions .tag-ai-usage { max-width: 142px; }
+            .header-actions .btn-sm { width: 34px; min-height: 34px; padding: 0; }
+            .content-area { padding: 10px; }
+            .dash-card { padding: 12px; }
+            .metric { font-size: 1.85rem; }
+            .card-title-row { gap: 8px; }
+        }
+
+        @media (max-width: 380px) {
+            .top-header { padding: 9px 8px; }
+            .page-title { font-size: 1.12rem; }
+            .content-area { padding: 8px; }
+            .header-actions { gap: 4px; }
+            .header-actions .tag { padding: 4px 6px; font-size: 0.68rem; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+    <style>
+        .page-fit {
+            height: auto;
+            min-height: 100%;
+            overflow: visible;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .overview-grid, .hub-grid, .diagnosis-grid, .generate-grid, .gate-grid, .sim-grid {
+            height: auto !important;
+            min-height: 100%;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            align-content: start;
+            align-items: start;
+            overflow-x: hidden;
+            overflow-y: visible;
+        }
+
+        .overview-grid, .hub-grid, .diagnosis-grid {
+            grid-template-rows: auto auto !important;
+        }
+
+        .generate-grid, .gate-grid, .sim-grid {
+            grid-auto-rows: max-content;
+        }
+
+        .character-panel {
+            align-items: start;
+        }
+
+        .two-stack, .control-stack, .result-stack, .side-stack {
+            grid-template-rows: none !important;
+            align-content: start;
+        }
+
+        .dash-card.scroll-panel, .scroll-panel {
+            max-height: none;
+        }
+
+        .phone-preview {
+            min-height: 520px;
+        }
+
+        @media (max-width: 720px) {
+            .page-fit {
+                min-height: 100%;
+                overflow: auto;
+                scrollbar-width: thin;
+            }
+
+            .overview-grid, .hub-grid, .diagnosis-grid, .generate-grid, .gate-grid, .sim-grid {
+                height: auto !important;
+                min-height: 100%;
+                grid-template-columns: minmax(0, 1fr) !important;
+                grid-template-rows: none !important;
+                grid-auto-rows: max-content;
+                align-content: start;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+            }
+
+            .metric-strip, .hub-metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            .control-stack, .result-stack, .side-stack {
+                grid-template-rows: none !important;
+                align-content: start;
+            }
+
+            .dash-card, .dash-card.scroll-panel, .scroll-panel {
+                overflow: visible;
+                max-height: none;
+            }
+
+            .chat-panel {
+                display: block !important;
+            }
+
+            .phone-preview {
+                height: 520px !important;
+                max-height: none;
+            }
+
+            textarea.form-control {
+                min-height: 120px;
+            }
+
+            .card-title-row .btn,
+            .card-title-row .tag {
+                flex: 0 0 auto;
+            }
+        }
+
+        @media (min-width: 721px) and (max-width: 1350px) and (max-height: 760px) {
+            body { font-size: 13px; }
+
+            .app-shell {
+                grid-template-columns: 72px minmax(0, 1fr);
+            }
+
+            .sidebar {
+                grid-template-rows: auto auto auto 1fr;
+                cursor: default;
+                --sidebar-rail-width: 72px;
+                --sidebar-logo-size: 40px;
+                --sidebar-logo-font-size: 1.15rem;
+                --sidebar-logo-padding: 12px 8px;
+                --sidebar-hint-size: 30px;
+                --sidebar-nav-height: 42px;
+                --sidebar-nav-margin: 1px 0;
+            }
+
+            .brand-logo {
+                justify-content: center;
+                padding: 12px 8px;
+            }
+
+            .brand-logo > div:last-child,
+            .nav-label,
+            .nav-link span {
+                display: none;
+            }
+
+            .sidebar-expand-hint {
+                display: grid;
+                width: 30px;
+                height: 30px;
+                margin: 6px auto 8px;
+            }
+
+            .logo-mark {
+                width: 40px;
+                height: 40px;
+                font-size: 1.15rem;
+            }
+
+            .nav-list {
+                padding: 4px 0 10px;
+            }
+
+            .nav-link {
+                height: 42px;
+                justify-content: center;
+                padding: 0;
+                margin: 1px 0;
+                font-size: 0.95rem;
+            }
+
+            .top-header {
+                min-height: 56px;
+                padding: 8px 14px;
+                gap: 10px;
+            }
+
+            .page-title {
+                font-size: 1.28rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.78rem;
+                margin-top: 2px;
+            }
+
+            .header-actions .tag {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+            }
+
+            .header-actions .btn-sm {
+                min-height: 32px;
+                padding: 4px 8px;
+            }
+
+            .top-plan-card {
+                width: 168px;
+                height: 36px;
+                padding: 4px 8px 4px 4px;
+                grid-template-columns: 28px minmax(0, 1fr);
+            }
+
+            .top-plan-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.76rem;
+            }
+
+            .top-plan-name {
+                font-size: 0.76rem;
+            }
+
+            .top-plan-meta {
+                display: none;
+            }
+
+            .content-area {
+                padding: 10px 12px;
+            }
+
+            .page-fit {
+                min-height: 100%;
+                overflow: auto;
+                scrollbar-width: thin;
+            }
+
+            .overview-grid, .hub-grid, .diagnosis-grid, .generate-grid, .gate-grid, .sim-grid {
+                height: auto !important;
+                min-height: 100%;
+                grid-template-rows: none !important;
+                grid-auto-rows: max-content;
+                align-content: start;
+                gap: 10px !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+            }
+
+            .two-stack, .control-stack, .result-stack, .side-stack {
+                grid-template-rows: none !important;
+                align-content: start;
+                gap: 10px !important;
+            }
+
+            .dash-card, .dash-card.scroll-panel, .scroll-panel {
+                overflow: visible;
+                max-height: none;
+            }
+
+            .dash-card {
+                padding: 10px;
+            }
+
+            .card-title-row {
+                margin-bottom: 8px;
+                gap: 8px;
+            }
+
+            .card-title-row h2, .card-title-row h3 {
+                font-size: 0.9rem;
+            }
+
+            .tag {
+                padding: 4px 7px;
+                font-size: 0.68rem;
+            }
+
+            .metric {
+                font-size: 1.75rem;
+            }
+
+            .fine {
+                font-size: 0.7rem;
+            }
+
+            .btn-primary-gradient,
+            .btn-outline-custom {
+                min-height: 34px;
+                font-size: 0.82rem;
+            }
+
+            .form-control, .form-select, textarea.form-control {
+                font-size: 0.82rem;
+                padding: 0.42rem 0.58rem;
+            }
+
+            .progress-track {
+                height: 7px;
+            }
+
+            .source-row, .job-row, .artifact-row, .todo-row, .workflow-link,
+            .history-row, .brief-box, .rule-card, .draft-card, .violation-card,
+            .safe-card, .persona-card, .response-card, .summary-card,
+            .benchmark-row, .priority-row {
+                padding: 9px;
+                margin-bottom: 8px;
+            }
+
+            .chat-panel {
+                display: block !important;
+                overflow: visible;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 990px), (min-width: 721px) and (max-width: 1350px) and (max-height: 760px) {
+            @keyframes sidebarFloatIn {
+                from {
+                    width: var(--sidebar-rail-width);
+                    opacity: 0.98;
+                }
+                to {
+                    width: var(--sidebar-width);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes sidebarFloatOut {
+                from {
+                    width: var(--sidebar-width);
+                    opacity: 1;
+                }
+                to {
+                    width: var(--sidebar-rail-width);
+                    opacity: 0.98;
+                }
+            }
+
+            @keyframes sidebarItemsIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes sidebarBrandTextIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-50%) translateX(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(-50%) translateX(0);
+                }
+            }
+
+            @keyframes sidebarItemsOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-8px);
+                }
+            }
+
+            @keyframes sidebarBrandTextOut {
+                from {
+                    opacity: 1;
+                    transform: translateY(-50%) translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-50%) translateX(-8px);
+                }
+            }
+
+            .app-shell.sidebar-float-open .sidebar,
+            .app-shell.sidebar-float-closing .sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                z-index: 40;
+                grid-template-rows: auto auto auto 1fr;
+                background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+                border-right: 1px solid #dbe2f0;
+                border-top: 0;
+                border-radius: 0 18px 18px 0;
+                box-shadow: 20px 0 44px rgba(15, 23, 42, 0.18);
+                cursor: default;
+                overflow: hidden;
+                animation: sidebarFloatIn 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            .app-shell.sidebar-float-open .sidebar {
+                width: var(--sidebar-width);
+                animation: sidebarFloatIn 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            .app-shell.sidebar-float-closing .sidebar {
+                width: var(--sidebar-rail-width);
+                pointer-events: none;
+                animation: sidebarFloatOut 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            .app-shell.sidebar-float-open .main-content,
+            .app-shell.sidebar-float-closing .main-content {
+                grid-column: 2;
+            }
+
+            .app-shell.sidebar-float-open .brand-logo,
+            .app-shell.sidebar-float-closing .brand-logo {
+                justify-content: flex-start;
+                padding: var(--sidebar-logo-padding);
+                padding-left: calc((var(--sidebar-rail-width) - var(--sidebar-logo-size)) / 2);
+                border-bottom-color: #eef2f7;
+            }
+
+            .app-shell.sidebar-float-open .nav-link span {
+                display: block;
+                animation: sidebarItemsIn 180ms ease-out both;
+            }
+
+            .app-shell.sidebar-float-open .nav-link span {
+                flex: 0 0 calc(var(--sidebar-width) - var(--sidebar-rail-width) - 28px);
+                min-width: calc(var(--sidebar-width) - var(--sidebar-rail-width) - 28px);
+                max-width: calc(var(--sidebar-width) - var(--sidebar-rail-width) - 28px);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .app-shell.sidebar-float-open .nav-label,
+            .app-shell.sidebar-float-closing .nav-label {
+                display: none;
+            }
+
+            .app-shell.sidebar-float-open .brand-logo,
+            .app-shell.sidebar-float-closing .brand-logo {
+                position: relative;
+            }
+
+            .app-shell.sidebar-float-open .brand-logo > div:last-child,
+            .app-shell.sidebar-float-closing .brand-logo > div:last-child {
+                position: absolute;
+                left: calc(var(--sidebar-rail-width) - 6px);
+                top: 50%;
+                transform: translateY(-50%);
+                width: calc(var(--sidebar-width) - var(--sidebar-rail-width) - 16px);
+                min-width: 0;
+            }
+
+            .app-shell.sidebar-float-open .brand-logo > div:last-child {
+                display: block;
+                animation: sidebarBrandTextIn 180ms ease-out both;
+            }
+
+            .app-shell.sidebar-float-closing .brand-logo > div:last-child {
+                display: none;
+            }
+
+            .app-shell.sidebar-float-closing .nav-link span {
+                display: none;
+            }
+
+            .app-shell.sidebar-float-open .sidebar-expand-hint,
+            .app-shell.sidebar-float-closing .sidebar-expand-hint {
+                display: grid;
+                margin-left: calc((var(--sidebar-rail-width) - 1px - var(--sidebar-hint-size)) / 2);
+                margin-right: 0;
+            }
+
+            .app-shell.sidebar-float-open .logo-mark,
+            .app-shell.sidebar-float-closing .logo-mark {
+                width: var(--sidebar-logo-size);
+                height: var(--sidebar-logo-size);
+                font-size: var(--sidebar-logo-font-size);
+            }
+
+            .app-shell.sidebar-float-open .nav-list,
+            .app-shell.sidebar-float-closing .nav-list {
+                padding: 4px 10px 18px 0;
+            }
+
+            .app-shell.sidebar-float-open .nav-link,
+            .app-shell.sidebar-float-closing .nav-link {
+                height: var(--sidebar-nav-height);
+                margin: var(--sidebar-nav-margin);
+                padding: 0 14px 0 calc((var(--sidebar-rail-width) - 20px) / 2 - 2px);
+                justify-content: flex-start;
+                gap: 14px;
+                border-right: 0;
+                border-radius: 10px;
+                transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+            }
+
+            .app-shell.sidebar-float-open .nav-link:hover {
+                transform: translateX(2px);
+            }
+
+            .app-shell.sidebar-float-open .nav-link.active {
+                box-shadow: inset 3px 0 0 var(--primary-color);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .app-shell.sidebar-float-open .sidebar,
+                .app-shell.sidebar-float-closing .sidebar,
+                .app-shell.sidebar-float-open .nav-label,
+                .app-shell.sidebar-float-closing .nav-label,
+                .app-shell.sidebar-float-open .nav-link span {
+                    animation: none;
+                }
+
+                .app-shell.sidebar-float-open .nav-link,
+                .sidebar-expand-hint {
+                    transition: none;
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a href="/dashboard" class="brand-logo">
+                <div class="logo-mark"><img src="/static/brand/branddna-symbol.png" alt="" aria-hidden="true"></div>
+                <div>
+                    <img class="brand-wordmark" src="/static/brand/branddna-wordmark.png" alt="BrandDNA">
+                    <div class="muted fine brand-subtitle">智慧品牌顧問</div>
+                </div>
+            </a>
+
+            <button class="sidebar-expand-hint" type="button" aria-label="展開選單" aria-expanded="false" title="展開選單">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
+
+            <nav class="nav-list">
+                <div class="nav-label">核心功能</div>
+                <a class="nav-link {% if currentPath == '/dashboard' %}active{% endif %}" href="/dashboard" title="總覽"><i class="fas fa-table-columns"></i><span>總覽</span></a>
+                <a class="nav-link {% if currentPath == '/data-hub' %}active{% endif %}" href="/data-hub" title="資料中心"><i class="fas fa-database"></i><span>資料中心</span></a>
+                <a class="nav-link {% if currentPath == '/diagnosis' %}active{% endif %}" href="/diagnosis" title="品牌診斷／品牌角色"><i class="fas fa-stethoscope"></i><span>品牌診斷／品牌角色</span></a>
+                <a class="nav-link {% if currentPath == '/generate' %}active{% endif %}" href="/generate" title="圖文生成"><i class="fas fa-pen"></i><span>圖文生成</span></a>
+                <a class="nav-link {% if currentPath == '/simulation' %}active{% endif %}" data-required-feature="simulation" data-lock-message="需要 AIR 以上" href="/simulation" title="市場預測"><i class="fas fa-chart-line"></i><span>市場預測</span></a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="min-w-0">
+                    <h1 class="page-title">{% block page_title %}總覽{% endblock %}</h1>
+                    <div class="page-subtitle">{% block page_subtitle %}以真實資料驅動的品牌經營工作台{% endblock %}</div>
+                </div>
+                <div class="header-actions">
+                    <span class="tag tag-ai-usage" id="aiUsageTag" title="No AI usage yet">Token -- / $--</span>
+                    <span class="tag" id="quotaCopyTag">文案 --</span>
+                    <span class="tag" id="quotaImageTag">圖片 --</span>
+                    <button class="btn btn-outline-custom btn-sm" type="button" onclick="refreshSubscription()" title="重新整理用量"><i class="fas fa-rotate"></i></button>
+                    <button class="top-plan-card" type="button" onclick="goToPlanSelection()" title="變更方案" aria-label="變更方案">
+                        <div class="top-plan-icon"><i class="fas fa-crown"></i></div>
+                        <div class="min-w-0">
+                            <div class="top-plan-name truncate" id="topPlanName">AIR 方案</div>
+                            <div class="top-plan-meta truncate" id="topPlanMeta">本次使用</div>
+                        </div>
+                    </button>
+                </div>
+            </header>
+            <section class="content-area">
+                {% block content %}{% endblock %}
+            </section>
+        </main>
+    </div>
+    <div class="toast-stack" id="toastStack"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const PLAN_STORAGE_KEY = 'branddna:selectedPlan';
+        const RUN_STORAGE_KEY = 'branddna:runId';
+        const VALID_PLANS = new Set(['FREE', 'AIR', 'PRO']);
+        window.subscriptionState = null;
+        window.latestAiUsage = null;
+        window.currentSessionPlan = selectedSessionPlan();
+        window.currentRunId = null;
+
+        function normalizeSessionPlan(value) {
+            const plan = String(value || '').toUpperCase();
+            return VALID_PLANS.has(plan) ? plan : null;
+        }
+
+        function selectedSessionPlan() {
+            try {
+                return normalizeSessionPlan(sessionStorage.getItem(PLAN_STORAGE_KEY));
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function fallbackRunId() {
+            if (window.crypto?.getRandomValues) {
+                const bytes = new Uint32Array(2);
+                window.crypto.getRandomValues(bytes);
+                return `run-${Date.now().toString(36)}-${Array.from(bytes).map(value => value.toString(36)).join('')}`;
+            }
+            return `run-${Date.now().toString(36)}`;
+        }
+
+        function ensureRunId() {
+            try {
+                let runId = sessionStorage.getItem(RUN_STORAGE_KEY);
+                if (!runId) {
+                    runId = window.crypto?.randomUUID ? window.crypto.randomUUID() : fallbackRunId();
+                    sessionStorage.setItem(RUN_STORAGE_KEY, runId);
+                }
+                window.currentRunId = runId;
+                return runId;
+            } catch (_) {
+                if (!window.currentRunId) window.currentRunId = fallbackRunId();
+                return window.currentRunId;
+            }
+        }
+
+        function currentAppPath() {
+            return `${window.location.pathname}${window.location.search}${window.location.hash}` || '/dashboard';
+        }
+
+        function redirectToPlanSelection() {
+            window.location.replace(`/?next=${encodeURIComponent(currentAppPath())}`);
+        }
+
+        function goToPlanSelection() {
+            try {
+                sessionStorage.removeItem(PLAN_STORAGE_KEY);
+            } catch (_) {}
+            window.location.href = `/?next=${encodeURIComponent(currentAppPath())}`;
+        }
+
+        if (!window.currentSessionPlan) {
+            redirectToPlanSelection();
+        } else {
+            ensureRunId();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[char]));
+        }
+
+        function formatUsageInteger(value) {
+            const number = Number(value || 0);
+            if (!Number.isFinite(number)) return '0';
+            return Math.round(number).toLocaleString('en-US');
+        }
+
+        function formatUsageUsd(value) {
+            const number = Number(value);
+            if (!Number.isFinite(number)) return '$--';
+            if (number > 0 && number < 0.000001) return '<$0.000001';
+            return `$${number.toFixed(6)}`;
+        }
+
+        function updateAiUsageTag(usage) {
+            if (!usage) return;
+            window.latestAiUsage = usage;
+            const tag = document.getElementById('aiUsageTag');
+            if (!tag) return;
+            const totalTokens = Number(usage.total_tokens || 0);
+            tag.textContent = `${formatUsageInteger(totalTokens)} tok / ${formatUsageUsd(usage.cost_usd)}`;
+            const cached = Number(usage.cached_input_tokens || 0);
+            const titleLines = [
+                `AI calls: ${formatUsageInteger(usage.calls || 0)}`,
+                `Input: ${formatUsageInteger(usage.input_tokens || 0)} tokens${cached ? ` (${formatUsageInteger(cached)} cached)` : ''}`,
+                `Output: ${formatUsageInteger(usage.output_tokens || 0)} tokens`,
+                `Total: ${formatUsageInteger(totalTokens)} tokens`,
+                `Cost: ${formatUsageUsd(usage.cost_usd)} USD`
+            ];
+            if (Array.isArray(usage.items) && usage.items.length) {
+                const models = [...new Set(usage.items.map(item => item.model).filter(Boolean))];
+                if (models.length) titleLines.push(`Models: ${models.join(', ')}`);
+            }
+            if (usage.pricing_note) titleLines.push(String(usage.pricing_note));
+            tag.title = titleLines.join('\n');
+        }
+
+        async function apiFetch(url, options = {}) {
+            const plan = window.currentSessionPlan || selectedSessionPlan();
+            if (!plan) {
+                redirectToPlanSelection();
+                throw new Error('請先選擇本次使用方案。');
+            }
+            window.currentSessionPlan = plan;
+            const fetchOptions = {...options};
+            const headers = new Headers(fetchOptions.headers || {});
+            headers.set('X-BrandDNA-Plan', plan);
+            headers.set('X-BrandDNA-Run-Id', ensureRunId());
+            fetchOptions.headers = headers;
+            let res;
+            try {
+                res = await fetch(url, fetchOptions);
+            } catch (err) {
+                const networkError = new Error('目前連不上服務，請確認伺服器是否仍在執行，或稍後再試一次。');
+                networkError.originalError = err;
+                throw networkError;
+            }
+            const data = await res.json().catch(() => ({}));
+            if (data.ai_usage) updateAiUsageTag(data.ai_usage);
+            if (!res.ok || data.success === false) {
+                const err = new Error(data.error || `操作失敗：${res.status}`);
+                err.payload = data;
+                err.status = res.status;
+                throw err;
+            }
+            return data;
+        }
+
+        function userFacingErrorMessage(errorOrMessage) {
+            const payloadError = errorOrMessage?.payload?.error;
+            if (payloadError) return String(payloadError);
+            const status = Number(errorOrMessage?.status || 0);
+            if (status >= 400 && status < 500) {
+                return `這次請求被伺服器拒絕（HTTP ${status}），但沒有回傳詳細原因。請重新整理頁面後再試一次。`;
+            }
+            const message = String(errorOrMessage?.message || errorOrMessage || '').trim();
+            if (!message) return '操作沒有完成，請再試一次。';
+
+            const technicalPatterns = [
+                /Cannot read properties of/i,
+                /Cannot set properties of/i,
+                /is not a function/i,
+                /is not defined/i,
+                /undefined|null/i,
+                /TypeError/i,
+                /ReferenceError/i,
+                /SyntaxError/i,
+                /NetworkError/i,
+                /Failed to fetch/i,
+                /Load failed/i,
+                /JSON/i,
+                /Unexpected token/i,
+            ];
+            if (technicalPatterns.some(pattern => pattern.test(message))) {
+                return '系統處理時發生問題，請重新整理頁面後再試一次。如果仍然失敗，請回報剛才操作的步驟。';
+            }
+            if (/操作失敗：?5\d\d/.test(message)) {
+                return '伺服器暫時無法完成這個操作，請稍後再試一次。';
+            }
+            if (/操作失敗：?4\d\d/.test(message)) {
+                return '這次操作送出的資料不完整或格式不正確，請檢查欄位後再送出。';
+            }
+            return message;
+        }
+
+        async function resetWorkspace(button) {
+            const confirmed = window.confirm('確定要全部重置嗎？這會刪除資料來源、整理結果、分析結果、品牌角色、處理紀錄與成果，但會保留品牌基本資料與目前方案。');
+            if (!confirmed) return;
+            setBusy(button, true, '重置中');
+            try {
+                await apiFetch('/api/reset', {method:'POST'});
+                showToast('已全部重置，可以重新載入示範資料或新增自己的資料。');
+                setTimeout(() => window.location.reload(), 350);
+            } catch (err) {
+                if (err.status === 404) {
+                    showToast('重置功能尚未載入，請先重啟服務後再按一次。', true);
+                } else {
+                    showToast(err, true);
+                }
+                setBusy(button, false);
+            }
+        }
+
+        function clearAppToasts() {
+            document.querySelectorAll('#toastStack .app-toast').forEach(toast => toast.remove());
+        }
+
+        function showToast(message, isError = false) {
+            const stack = document.getElementById('toastStack');
+            const toast = document.createElement('div');
+            toast.className = `app-toast${isError ? ' error' : ''}`;
+            toast.textContent = isError ? userFacingErrorMessage(message) : String(message ?? '');
+            stack.appendChild(toast);
+            setTimeout(() => toast.remove(), 4200);
+        }
+
+        window.addEventListener('error', event => {
+            showToast(event.error || event.message, true);
+        });
+
+        window.addEventListener('unhandledrejection', event => {
+            showToast(event.reason || '操作沒有完成，請再試一次。', true);
+        });
+
+        function setBusy(button, busy, label = '處理中...') {
+            if (!button) return;
+            if (busy) {
+                if (!button.dataset.originalHtml) button.dataset.originalHtml = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${label}`;
+            } else {
+                button.disabled = false;
+                if (button.dataset.originalHtml) {
+                    button.innerHTML = button.dataset.originalHtml;
+                    delete button.dataset.originalHtml;
+                }
+            }
+        }
+
+        function formatQuota(quota) {
+            if (!quota) return '--';
+            if (quota.limit === null) return `${quota.used} / ∞`;
+            return `${quota.used} / ${quota.limit}`;
+        }
+
+        const STATUS_LABELS = {
+            not_extracted: '尚未整理',
+            not_analyzed: '尚未分析',
+            stored: '已新增',
+            extracted: '已整理',
+            analyzed: '已分析',
+            done: '已完成',
+            running: '處理中',
+            queued: '等待中',
+            error: '需要處理',
+            failed: '未完成',
+            needs_manual_text: '需要補充文字'
+        };
+
+        const TYPE_LABELS = {
+            instagram: 'Instagram',
+            facebook: 'Facebook',
+            google_maps: 'Google 商家/地圖',
+            google_reviews: 'Google 評論',
+            website: '官網 / 品牌頁',
+            menu: '菜單',
+            recruitment: '招募內容',
+            compliance_rule: '品牌規範',
+            internal_rule: '內部規範',
+            custom: '其他資料',
+            content_generation: '文案成果',
+            brand_image: '品牌圖片',
+            image_prompt: '圖片設定',
+            diagnosis_insight: '診斷報告',
+            risk_check: '規範檢查',
+            simulation: '市場預測',
+            extract_source: '整理資料',
+            analyze_source: '分析資料',
+            global_scan: '全域掃描',
+            brand_dna_pipeline: '建立品牌角色'
+        };
+
+        const PRIORITY_LABELS = {
+            urgent: '重要',
+            attention: '待處理',
+            warning: '待處理',
+            danger: '重要',
+            info: '建議',
+            success: '完成'
+        };
+
+        const RISK_LABELS = {
+            low: '低風險',
+            medium: '需留意',
+            high: '高風險',
+            positive: '反應佳',
+            neutral: '普通',
+            negative: '需調整'
+        };
+
+        function displayLabel(value, labels = TYPE_LABELS) {
+            return labels[value] || value || '未命名';
+        }
+
+        function statusLabel(value) {
+            return displayLabel(value, STATUS_LABELS);
+        }
+
+        function priorityLabel(value) {
+            return displayLabel(value, PRIORITY_LABELS);
+        }
+
+        function riskLabel(value) {
+            return displayLabel(value, RISK_LABELS);
+        }
+
+        function priorityClass(value) {
+            if (['urgent', 'danger'].includes(value)) return 'tag-red';
+            if (['attention', 'warning'].includes(value)) return 'tag-yellow';
+            if (value === 'success') return 'tag-green';
+            return 'tag-blue';
+        }
+
+        function lockOverlayMarkup(message) {
+            return `<span class="feature-lock-overlay" aria-hidden="true"><i class="fas fa-lock"></i><span>${escapeHtml(message)}</span></span>`;
+        }
+
+        function setFeatureLocked(element, locked, message = '此功能需要 AIR 以上方案') {
+            if (!element) return;
+            element.classList.add('feature-lockable');
+            element.classList.toggle('feature-locked', locked);
+            element.dataset.featureLock = locked ? 'true' : 'false';
+            element.setAttribute('aria-disabled', String(locked));
+            if (locked) {
+                if (!element.querySelector(':scope > .feature-lock-overlay')) {
+                    element.insertAdjacentHTML('beforeend', lockOverlayMarkup(message));
+                } else {
+                    const label = element.querySelector(':scope > .feature-lock-overlay span');
+                    if (label) label.textContent = message;
+                }
+                if (element.matches('a, button, input, select, textarea')) {
+                    if (!element.dataset.originalTabindex) element.dataset.originalTabindex = element.getAttribute('tabindex') || '';
+                    element.setAttribute('tabindex', '-1');
+                }
+                if ('disabled' in element && element.tagName === 'BUTTON') element.disabled = true;
+                if ('inert' in element && !element.matches('a, button, input, select, textarea')) element.inert = true;
+                return;
+            }
+            element.querySelector(':scope > .feature-lock-overlay')?.remove();
+            element.removeAttribute('aria-disabled');
+            if (element.matches('a, button, input, select, textarea')) {
+                const original = element.dataset.originalTabindex;
+                if (original) element.setAttribute('tabindex', original);
+                else element.removeAttribute('tabindex');
+                delete element.dataset.originalTabindex;
+            }
+            if ('disabled' in element && element.tagName === 'BUTTON') element.disabled = false;
+            if ('inert' in element) element.inert = false;
+        }
+
+        function applyFeatureLocks(features = {}) {
+            document.querySelectorAll('[data-required-feature]').forEach(element => {
+                const feature = element.dataset.requiredFeature;
+                const allowed = Boolean(features[feature]);
+                setFeatureLocked(element, !allowed, element.dataset.lockMessage || '此功能需要 AIR 以上方案');
+            });
+        }
+
+        function applySubscription(subscription) {
+            window.subscriptionState = subscription;
+            const plan = subscription.plan;
+            window.currentSessionPlan = plan;
+            try {
+                sessionStorage.setItem(PLAN_STORAGE_KEY, plan);
+            } catch (_) {}
+            const planName = document.getElementById('topPlanName');
+            const planMeta = document.getElementById('topPlanMeta');
+            if (planName) planName.textContent = `${plan} 方案`;
+            if (planMeta) planMeta.textContent = subscription.period?.type === 'session' ? '本次使用' : '目前方案';
+            const planBadge = document.getElementById('planBadge');
+            if (planBadge) planBadge.textContent = plan;
+            document.getElementById('quotaCopyTag').textContent = `文案 ${formatQuota(subscription.quotas?.content_generation)}`;
+            document.getElementById('quotaImageTag').textContent = `圖片 ${formatQuota(subscription.quotas?.brand_image)}`;
+            const features = subscription.plan_info.features || {};
+            applyFeatureLocks(features);
+            window.dispatchEvent(new CustomEvent('subscriptionChanged', { detail: subscription }));
+        }
+
+        async function refreshSubscription() {
+            const data = await apiFetch('/api/subscription');
+            applySubscription(data.subscription);
+            return data.subscription;
+        }
+
+        document.addEventListener('click', event => {
+            const locked = event.target.closest('[data-feature-lock="true"]');
+            if (!locked) return;
+            event.preventDefault();
+            event.stopPropagation();
+            showToast(locked.dataset.lockMessage || '此功能需要 AIR 以上方案。', true);
+        }, true);
+
+        function isCollapsedLeftMode() {
+            const narrowLeft = window.matchMedia('(min-width: 641px) and (max-width: 990px)').matches;
+            const shortLaptop = window.matchMedia('(min-width: 721px) and (max-width: 1350px) and (max-height: 760px)').matches;
+            return narrowLeft || shortLaptop;
+        }
+
+        let sidebarOpenMode = null;
+        let sidebarHoverCloseTimer = null;
+        let sidebarCloseAnimationTimer = null;
+
+        function clearSidebarHoverTimer() {
+            if (!sidebarHoverCloseTimer) return;
+            window.clearTimeout(sidebarHoverCloseTimer);
+            sidebarHoverCloseTimer = null;
+        }
+
+        function clearSidebarCloseAnimationTimer() {
+            if (!sidebarCloseAnimationTimer) return;
+            window.clearTimeout(sidebarCloseAnimationTimer);
+            sidebarCloseAnimationTimer = null;
+        }
+
+        function setSidebarHintOpenState(isOpen) {
+            const hint = document.querySelector('.sidebar-expand-hint');
+            if (!hint) return;
+            hint.setAttribute('aria-expanded', String(isOpen));
+            hint.setAttribute('aria-label', isOpen ? '收合選單' : '展開選單');
+            hint.setAttribute('title', isOpen ? '收合選單' : '展開選單');
+            const icon = hint.querySelector('i');
+            if (!icon) return;
+            icon.classList.toggle('fa-chevron-right', !isOpen);
+            icon.classList.toggle('fa-chevron-left', isOpen);
+        }
+
+        function openFloatingSidebar(mode = 'click') {
+            const shell = document.querySelector('.app-shell');
+            if (!shell || !isCollapsedLeftMode()) return;
+            clearSidebarHoverTimer();
+            clearSidebarCloseAnimationTimer();
+            shell.classList.remove('sidebar-float-closing');
+            shell.classList.add('sidebar-float-open');
+            setSidebarHintOpenState(true);
+            sidebarOpenMode = mode;
+        }
+
+        function closeFloatingSidebar(options = {}) {
+            const animate = options?.animate !== false;
+            const shell = document.querySelector('.app-shell');
+            if (!shell) return;
+            if (animate && shell.classList.contains('sidebar-float-closing') && !shell.classList.contains('sidebar-float-open')) return;
+            clearSidebarHoverTimer();
+            clearSidebarCloseAnimationTimer();
+            const wasOpen = shell.classList.contains('sidebar-float-open');
+            sidebarOpenMode = null;
+            setSidebarHintOpenState(false);
+            if (animate && wasOpen && isCollapsedLeftMode()) {
+                shell.classList.remove('sidebar-float-open');
+                shell.classList.add('sidebar-float-closing');
+                sidebarCloseAnimationTimer = window.setTimeout(() => {
+                    shell.classList.remove('sidebar-float-closing');
+                    clearSidebarCloseAnimationTimer();
+                }, 210);
+                return;
+            }
+            shell.classList.remove('sidebar-float-open', 'sidebar-float-closing');
+        }
+
+        function scheduleHoverSidebarClose() {
+            clearSidebarHoverTimer();
+            sidebarHoverCloseTimer = window.setTimeout(() => {
+                if (sidebarOpenMode === 'hover') closeFloatingSidebar();
+            }, 180);
+        }
+
+        function setupFloatingSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('.main-content');
+            const hint = document.querySelector('.sidebar-expand-hint');
+            if (!sidebar || !main) return;
+
+            hint?.addEventListener('click', event => {
+                if (!isCollapsedLeftMode()) return;
+                event.preventDefault();
+                event.stopPropagation();
+                const shell = document.querySelector('.app-shell');
+                if (shell?.classList.contains('sidebar-float-open')) {
+                    closeFloatingSidebar();
+                    return;
+                }
+                openFloatingSidebar('click');
+            });
+
+            sidebar.querySelectorAll('.brand-logo, .nav-link').forEach(trigger => {
+                trigger.addEventListener('mouseenter', () => {
+                    if (!isCollapsedLeftMode()) return;
+                    if (sidebarOpenMode === 'click') return;
+                    openFloatingSidebar('hover');
+                });
+            });
+
+            sidebar.addEventListener('mouseenter', () => {
+                if (sidebarOpenMode === 'hover') clearSidebarHoverTimer();
+            });
+
+            sidebar.addEventListener('mouseleave', () => {
+                if (sidebarOpenMode === 'hover') scheduleHoverSidebarClose();
+            });
+
+            sidebar.querySelectorAll('.brand-logo, .nav-link').forEach(link => {
+                link.addEventListener('click', event => {
+                    if (!isCollapsedLeftMode()) return;
+                    if (link.dataset.featureLock === 'true') return;
+                    if (link.classList.contains('active')) event.preventDefault();
+                    closeFloatingSidebar();
+                });
+            });
+
+            main.addEventListener('click', () => closeFloatingSidebar());
+            document.addEventListener('click', event => {
+                const shell = document.querySelector('.app-shell');
+                if (!shell?.classList.contains('sidebar-float-open')) return;
+                if (!isCollapsedLeftMode()) return;
+                if (event.target.closest('.sidebar')) return;
+                closeFloatingSidebar();
+            }, true);
+            window.addEventListener('resize', () => {
+                if (!isCollapsedLeftMode()) closeFloatingSidebar({ animate: false });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupFloatingSidebar();
+            document.querySelectorAll('[data-reset-workspace]').forEach(btn => {
+                btn.addEventListener('click', () => resetWorkspace(btn));
+            });
+            refreshSubscription().catch(err => showToast(err.message, true));
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

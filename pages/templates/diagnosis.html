@@ -1,0 +1,830 @@
+{% extends "base.html" %}
+
+{% block page_title %}品牌診斷／品牌角色{% endblock %}
+{% block page_subtitle %}資料準備 → 12 品牌人格判斷 → 品牌角色建立 → 圖文生成設定{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content-area .page-fit.diagnosis-grid {
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        align-content: stretch !important;
+        align-items: stretch !important;
+        grid-template-rows: minmax(430px, 0.9fr) minmax(318px, 0.68fr) !important;
+    }
+    .diagnosis-grid {
+        display: grid;
+        width: 100%;
+        max-width: 1680px;
+        margin: 0 auto;
+        grid-template-columns: minmax(220px, 0.72fr) minmax(320px, 0.95fr) minmax(360px, 1.2fr);
+        gap: 16px;
+    }
+    .diagnosis-grid > .dash-card {
+        min-height: 0;
+        height: 100%;
+    }
+    .role-panel {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+        gap: 16px;
+    }
+    .source-pill, .role-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        margin-bottom: 8px;
+    }
+    .role-row { grid-template-columns: minmax(92px, 0.28fr) minmax(0, 1fr); align-items: start; }
+    .archetype-badge {
+        width: min(118px, 100%);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        margin: 6px auto 10px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #eef2ff;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.72);
+    }
+    .archetype-badge img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    #archetypeName {
+        font-size: clamp(1.55rem, 1.8vw, 2.05rem);
+        line-height: 1.08;
+        margin-bottom: 8px;
+    }
+    #archetypeRationale {
+        line-height: 1.58;
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .score-row {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr) 42px;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .archetype-ranking {
+        display: grid;
+        gap: 8px;
+    }
+    .top-five-archetypes { display: grid; gap: 7px; }
+    .archetype-item, .remaining-archetypes {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f8fafc;
+        overflow: hidden;
+    }
+    .archetype-summary, .remaining-summary {
+        min-width: 0;
+        cursor: pointer;
+        list-style: none;
+    }
+    .archetype-summary::-webkit-details-marker, .remaining-summary::-webkit-details-marker { display: none; }
+    .archetype-summary {
+        display: grid;
+        grid-template-columns: auto auto minmax(0, 1fr) minmax(82px, 0.42fr) auto;
+        gap: 9px;
+        align-items: center;
+        padding: 8px 9px;
+    }
+    .archetype-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--primary-soft);
+        color: var(--primary-color);
+        font-weight: 900;
+        font-size: 0.78rem;
+    }
+    .archetype-thumb {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        overflow: hidden;
+        display: block;
+        background: #eef2ff;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.72);
+    }
+    .archetype-thumb img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+    .archetype-detail {
+        border-top: 1px solid var(--line);
+        padding: 14px 16px;
+        background: #fff;
+    }
+    .archetype-detail p { margin: 6px 0 0; line-height: 1.75; }
+    .remaining-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 9px 10px;
+        font-weight: 900;
+    }
+    .remaining-score-list {
+        border-top: 1px solid var(--line);
+        padding: 10px 10px 2px;
+        background: #fff;
+    }
+    .character-image-panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #f8fafc;
+        min-height: 0;
+        padding: 14px;
+    }
+    .character-image-frame {
+        width: min(100%, 156px);
+        flex: 0 0 auto;
+        aspect-ratio: 2 / 3;
+        border-radius: 10px;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        background: #eef2ff;
+        border: 1px solid var(--line);
+    }
+    .character-image-frame img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
+    }
+    .character-image-frame.is-placeholder img {
+        width: 76%;
+        height: 76%;
+    }
+    .character-image-actions {
+        width: 100%;
+        display: grid;
+        gap: 8px;
+    }
+    .character-image-status {
+        min-height: 1.2em;
+        text-align: center;
+    }
+    .character-prompt-preview {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+    }
+    .character-prompt-preview summary {
+        cursor: pointer;
+        padding: 9px 10px;
+        font-weight: 900;
+        list-style: none;
+    }
+    .character-prompt-preview summary::-webkit-details-marker { display: none; }
+    .character-prompt-text {
+        border-top: 1px solid var(--line);
+        padding: 10px;
+        max-height: 150px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    .character-workspace {
+        display: grid;
+        grid-template-columns: minmax(148px, 0.32fr) minmax(260px, 0.68fr);
+        gap: 14px;
+        align-items: stretch;
+        min-height: 0;
+    }
+    .character-control-panel {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fff;
+    }
+    .character-control-panel h3 { margin: 0; }
+    .character-control-panel .btn { width: 100%; }
+    .compact-status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .status-mini {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: #f8fafc;
+        font-weight: 800;
+    }
+    .status-mini span { min-width: 0; overflow-wrap: anywhere; }
+    .status-mini strong { display: block; color: var(--muted); font-size: .74rem; line-height: 1.1; }
+    @media (min-width: 1500px) and (min-height: 821px) {
+        .role-panel {
+            grid-template-columns: minmax(190px, 0.24fr) minmax(520px, 0.92fr) minmax(320px, 0.42fr);
+        }
+        .character-workspace {
+            display: contents;
+        }
+        .character-image-frame {
+            width: min(100%, 180px);
+        }
+        .character-control-panel {
+            justify-content: center;
+        }
+        .role-panel > .scroll-panel {
+            min-height: 0;
+        }
+    }
+    @media (max-height: 820px) and (min-width: 1135px) {
+        .content-area .page-fit.diagnosis-grid {
+            --diag-top-row: clamp(315px, 45vh, 350px);
+            height: auto !important;
+            min-height: 100% !important;
+            overflow: visible !important;
+            align-content: start !important;
+            align-items: stretch !important;
+            grid-template-rows: var(--diag-top-row) minmax(238px, auto) !important;
+        }
+        .diagnosis-grid > .dash-card {
+            height: auto;
+        }
+        .diagnosis-grid > .dash-card:nth-child(-n+3) {
+            height: var(--diag-top-row);
+            max-height: var(--diag-top-row);
+            overflow: auto;
+        }
+        .role-panel {
+            min-height: 238px;
+        }
+        .source-pill, .role-row {
+            padding: 8px 10px;
+            margin-bottom: 8px;
+        }
+        .archetype-badge {
+            width: min(88px, 100%);
+            margin: 4px auto 6px;
+        }
+        #archetypeName {
+            font-size: 1.52rem;
+        }
+        #archetypeRationale {
+            -webkit-line-clamp: 3;
+        }
+        .archetype-summary {
+            padding: 7px 8px;
+        }
+        .character-image-panel {
+            padding: 10px;
+        }
+        .character-image-frame {
+            width: min(100%, 140px);
+        }
+        .character-control-panel {
+            padding: 12px;
+            gap: 10px;
+        }
+        .character-control-panel h3 {
+            font-size: 1.45rem;
+            line-height: 1.1;
+        }
+    }
+    @media (max-width: 1134px) {
+        .content-area .page-fit.diagnosis-grid {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow: auto !important;
+            grid-template-rows: none !important;
+            grid-auto-rows: max-content;
+            align-items: start !important;
+            align-content: start !important;
+        }
+        .diagnosis-grid { grid-template-columns: 1fr 1fr; }
+        .diagnosis-grid > .dash-card { height: auto; }
+        .role-panel { grid-column: 1 / -1; grid-template-columns: 1fr; }
+        .character-workspace { grid-template-columns: minmax(0, 1fr); }
+        .compact-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+        .diagnosis-grid { grid-template-columns: 1fr; }
+        .role-panel { grid-column: auto; }
+        .character-image-frame { max-height: 520px; }
+        .archetype-summary { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+        .archetype-summary .progress-track { grid-column: 3 / -1; }
+        .compact-status-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-fit diagnosis-grid">
+    <div class="dash-card scroll-panel">
+        <div class="card-title-row">
+            <h2><i class="fas fa-database me-2"></i>1. 品牌資料準備</h2>
+            <span class="tag" id="scanScore">--</span>
+        </div>
+        <div class="d-grid gap-2" id="sourceBreakdown"></div>
+        <div class="mt-3">
+            <div class="progress-track"><div class="progress-fill" id="readinessFill" style="width:0%"></div></div>
+            <div class="metric text-center mt-3" id="sourceTotal">0</div>
+            <div class="muted text-center fine">資料筆數</div>
+        </div>
+    </div>
+
+    <div class="dash-card scroll-panel">
+        <div class="card-title-row">
+            <h2><i class="fas fa-fingerprint me-2"></i>2. 12 品牌人格</h2>
+            <span class="tag tag-green" id="archetypeConfidence">--</span>
+        </div>
+        <div class="archetype-badge"><img id="archetypeImage" src="/static/archetypes/everyman.svg" alt="凡人型品牌視覺"></div>
+        <h3 class="text-center fw-black" id="archetypeName">尚未定位</h3>
+        <p class="muted fine" id="archetypeRationale"></p>
+        <div id="dimensionRows" class="archetype-ranking-shell"></div>
+    </div>
+
+    <div class="dash-card scroll-panel">
+        <div class="card-title-row">
+            <h2><i class="fas fa-user-pen me-2"></i>3. 品牌角色設定</h2>
+            <button class="btn btn-sm btn-primary-gradient" id="runInsightBtn"><i class="fas fa-wand-magic-sparkles me-1"></i>重新診斷</button>
+        </div>
+        <div id="roleSummary"></div>
+    </div>
+
+    <div class="dash-card role-panel">
+        <div class="character-workspace">
+            <div class="character-image-panel">
+                <div class="character-image-frame is-placeholder" id="characterImageFrame">
+                    <img id="characterImage" src="/static/archetypes/everyman.svg" alt="品牌角色圖">
+                </div>
+            </div>
+            <div class="character-control-panel">
+                <div>
+                    <div class="muted fine fw-bold mb-1">品牌個性角色化</div>
+                    <h3 id="characterImageTitle" class="fw-black">品牌角色圖</h3>
+                    <p class="muted fine mb-0" id="characterImageHelp">依 12 原型、定位、特色與語氣產生品牌代言角色。</p>
+                </div>
+                <div class="character-image-actions">
+                    <button class="btn btn-primary-gradient" id="generateCharacterImageBtn"><i class="fas fa-user-astronaut me-2"></i>產生角色圖</button>
+                    <div class="muted fine character-image-status" id="characterImageStatus">尚未產生角色圖</div>
+                    <details class="character-prompt-preview" id="characterPromptPreview" hidden>
+                        <summary>Image prompt 預覽</summary>
+                        <div class="character-prompt-text fine muted" id="characterPromptText"></div>
+                    </details>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-panel">
+            <div class="card-title-row">
+                <h2><i class="fas fa-list-check me-2"></i>診斷狀態</h2>
+                <button class="btn btn-sm btn-outline-custom" id="importDemoBtn">匯入示範資料</button>
+            </div>
+            <div id="diagStatus" class="compact-status-grid"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const sourceLabels = {website:'官網 / 品牌頁', facebook:'Facebook', google_maps:'Google 商家/地圖', google_reviews:'Google 評論', recruitment:'招募內容', instagram:'Instagram', compliance_rule:'法律規範', internal_rule:'內部規範', custom:'其他資料'};
+const archetypeLabels = {innocent:'天真者型品牌', explorer:'探險家型品牌', sage:'智者型品牌', hero:'英雄型品牌', outlaw:'叛逆者型品牌', magician:'魔法師型品牌', everyman:'凡人型品牌', lover:'愛人型品牌', jester:'小丑型品牌', caregiver:'照顧者型品牌', creator:'創造者型品牌', ruler:'統治者型品牌'};
+const archetypeOrder = ['innocent', 'explorer', 'sage', 'hero', 'outlaw', 'magician', 'everyman', 'lover', 'jester', 'caregiver', 'creator', 'ruler'];
+const archetypeImages = Object.fromEntries(archetypeOrder.map(key => [key, `/static/archetypes/${key}.svg`]));
+const archetypeDescriptions = {
+    innocent: '單純、安心、樂觀，讓顧客感到放心。',
+    explorer: '自由、探索、嘗鮮，鼓勵顧客發現新體驗。',
+    sage: '專業、知識、可信，協助顧客做出明智選擇。',
+    hero: '自信、突破、行動，鼓舞顧客達成目標。',
+    outlaw: '顛覆、鮮明、反常規，吸引喜歡差異感的顧客。',
+    magician: '轉化、驚喜、想像，創造令人期待的體驗。',
+    everyman: '親近、日常、歸屬，像熟悉的朋友一樣陪伴顧客。',
+    lover: '感性、美感、關係，強調愉悅與被珍惜的感受。',
+    jester: '幽默、玩心、輕鬆，讓互動充滿趣味。',
+    caregiver: '照顧、溫暖、支持，重視安心與貼心服務。',
+    creator: '創意、設計、表達，重視原創與風格辨識。',
+    ruler: '秩序、品質、領導，傳達穩定、精緻與掌控感。'
+};
+let latestOverview = null;
+let latestCharacterImagePrompt = '';
+
+function cleanUiText(value) {
+    const text = String(value || '').trim();
+    return text && !text.includes('�') ? text : '';
+}
+
+const genericDetailPhrases = [
+    '目前可讀資料',
+    '具體文本線索不足',
+    '目前缺少更細的來源 reasoning',
+    '分數進入前五',
+    '完整人格光譜中的參考分數',
+    '目前資料未提供更多來源線索'
+];
+
+function cleanDetailText(value) {
+    const text = cleanUiText(value);
+    return text && !genericDetailPhrases.some(phrase => text.includes(phrase)) ? text : '';
+}
+
+function archetypeKeyFromLabel(label) {
+    const text = cleanUiText(label).toLowerCase();
+    if (!text) return '';
+    return archetypeOrder.find(key => {
+        const zh = archetypeLabels[key];
+        const shortZh = zh.replace('型品牌', '');
+        return text === key || text === zh.toLowerCase() || text.includes(shortZh.toLowerCase());
+    }) || '';
+}
+
+function setArchetypeImage(value) {
+    const key = cleanUiText(value) && archetypeLabels[value] ? value : archetypeKeyFromLabel(value);
+    const resolvedKey = key || 'everyman';
+    const img = document.getElementById('archetypeImage');
+    if (!img) return;
+    img.src = archetypeImages[resolvedKey] || archetypeImages.everyman;
+    img.alt = `${archetypeLabels[resolvedKey] || '品牌人格'}視覺`;
+}
+
+function clampScore(value) {
+    return Math.max(0, Math.min(100, Math.round(Number(value || 0))));
+}
+
+function cleanTextList(value) {
+    const items = Array.isArray(value) ? value : (cleanUiText(value) ? [value] : []);
+    const seen = new Set();
+    return items.map(item => cleanUiText(typeof item === 'object' ? (item.text || item.reason || item.reasoning || '') : item))
+        .filter(item => {
+            if (!item || seen.has(item) || genericDetailPhrases.some(phrase => item.includes(phrase))) return false;
+            seen.add(item);
+            return true;
+        })
+        .slice(0, 3);
+}
+
+function brandContextSnippets(dna) {
+    const character = dna?.brand_character || {};
+    const tone = dna?.tone_guide || {};
+    const traits = Array.isArray(character.traits) ? character.traits : Array.isArray(dna?.brand_traits) ? dna.brand_traits : Array.isArray(dna?.keywords) ? dna.keywords : [];
+    const segments = Array.isArray(dna?.audience_segments) ? dna.audience_segments : [];
+    const audience = character.target_audience || segments.map(s => [s.name, s.need, s.message_angle].filter(Boolean).join('：')).filter(Boolean)[0] || '';
+    return [
+        character.positioning || dna?.positioning || dna?.summary,
+        traits.length ? `品牌特質包含「${traits.slice(0, 5).join('、')}」` : '',
+        character.voice || tone.voice ? `語氣偏向「${character.voice || tone.voice}」` : '',
+        audience ? `主要溝通對象是「${audience}」` : ''
+    ].map(cleanUiText).filter(Boolean).slice(0, 4);
+}
+
+function normalizeArchetypeRows(rows) {
+    const byKey = new Map();
+    (rows || []).forEach(row => {
+        const key = cleanUiText(row.key) || archetypeKeyFromLabel(row.name || row.label || row.archetype);
+        if (!key || !archetypeLabels[key]) return;
+        byKey.set(key, row);
+    });
+    return archetypeOrder.map((key, orderIndex) => {
+        const row = byKey.get(key) || {};
+        return {
+            key,
+            orderIndex,
+            name: cleanUiText(row.name || row.label) || archetypeLabels[key],
+            score: clampScore(row.score ?? row.value),
+            rank: Number(row.rank || 0),
+            explanation: cleanDetailText(row.explanation || row.analysis || row.description),
+            reason: cleanDetailText(row.reason || row.rationale),
+            score_logic: cleanDetailText(row.score_logic || row.logic || row.scoring_logic),
+            evidence: cleanTextList(row.evidence || row.source_evidence || row.signals)
+        };
+    }).sort((a, b) => b.score - a.score || a.orderIndex - b.orderIndex).map((row, index) => ({
+        ...row,
+        rank: index + 1,
+        is_top_five: index < 5
+    }));
+}
+
+function archetypeExplanation(row, topScore, dna) {
+    if (row.explanation) return row.explanation;
+    const gap = Math.max(0, topScore - row.score);
+    const band = row.score >= 80 ? '核心人格' : row.score >= 60 ? '強次要人格' : row.score >= 35 ? '輔助訊號' : row.score > 0 ? '弱訊號' : '未見明確訊號';
+    if (row.evidence.length) {
+        const comparison = row.rank === 1 ? '也是本次最突出的品牌人格。' : `但與最高分差 ${gap} 分，因此更像輔助特質。`;
+        return `品牌文本與「${row.name}」的吻合點在於：${row.evidence.slice(0, 3).join('；')}。這些訊號呈現出${archetypeDescriptions[row.key]}以 ${row.score}/100 來看，這屬於「${band}」，${comparison}`;
+    }
+    if (row.reason && row.score_logic) return `${row.reason}${row.score_logic}`;
+    if (row.reason) return row.reason;
+    if (row.score_logic) return row.score_logic;
+    const context = brandContextSnippets(dna);
+    const contextSentence = context.length ? `目前 Brand DNA 顯示：${context.join('；')}。` : '';
+    const comparison = row.rank === 1 ? '因此它可被視為目前品牌最主要的人格方向。' : `不過它與最高分差 ${gap} 分，因此更適合作為輔助個性，而非單一主軸。`;
+    return `${contextSentence}這些品牌特點可對應到「${row.name}」的${archetypeDescriptions[row.key]}${row.score}/100 屬於「${band}」，${comparison}`;
+}
+
+function renderCompactScoreRow(row) {
+    return `<div class="score-row"><strong class="truncate">${escapeHtml(row.name)}</strong><div class="progress-track"><div class="progress-fill" style="width:${row.score}%"></div></div><strong class="text-end">${row.score}</strong></div>`;
+}
+
+function renderTopArchetype(row, topScore, dna) {
+    const imageSrc = archetypeImages[row.key] || archetypeImages.everyman;
+    const imageAlt = `${row.name || 'Brand archetype'} visual`;
+    return `
+        <details class="archetype-item">
+            <summary class="archetype-summary">
+                <span class="archetype-rank">#${row.rank}</span>
+                <span class="archetype-thumb"><img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(imageAlt)}" loading="lazy" decoding="async"></span>
+                <strong class="truncate">${escapeHtml(row.name)}</strong>
+                <div class="progress-track"><div class="progress-fill" style="width:${row.score}%"></div></div>
+                <strong class="text-end">${row.score}</strong>
+            </summary>
+            <div class="archetype-detail">
+                <strong>人格說明</strong>
+                <p class="muted fine">${escapeHtml(archetypeExplanation(row, topScore, dna))}</p>
+            </div>
+        </details>
+    `;
+}
+
+function renderArchetypeRanking(rows, dna = {}) {
+    const normalized = normalizeArchetypeRows(rows);
+    const topRows = normalized.slice(0, 5);
+    const remainingRows = normalized.slice(5);
+    const topScore = topRows[0]?.score || 0;
+    return `
+        <div class="archetype-ranking">
+            <div class="top-five-archetypes">${topRows.map(row => renderTopArchetype(row, topScore, dna)).join('')}</div>
+            <details class="remaining-archetypes">
+                <summary class="remaining-summary"><span>其餘 7 個人格分數</span><span class="tag">${remainingRows.length}</span></summary>
+                <div class="remaining-score-list">${remainingRows.map(renderCompactScoreRow).join('')}</div>
+            </details>
+        </div>
+    `;
+}
+
+function brandCharacterFromDna(dna) {
+    const primary = dna.brand_archetype || {};
+    const character = dna.brand_character || {};
+    const audience = character.target_audience || (dna.audience_segments || []).map(s => `${s.name || '客群'}：${s.need || s.message_angle || ''}`)[0] || '尚未推導';
+    return {
+        name: character.name || primary.role_name || dna.archetype || '品牌角色',
+        archetype: character.archetype || primary.role_name || dna.archetype || '尚未定位',
+        positioning: character.positioning || dna.positioning || dna.summary || '',
+        traits: character.traits || dna.brand_traits || dna.keywords || [],
+        voice: character.voice || dna.tone_guide?.voice || '',
+        visual_personality: character.visual_personality || dna.visual_personality || '',
+        target_audience: audience,
+        description: character.description || dna.summary || '',
+        visual_prompt: character.visual_prompt || '',
+        character_image: character.character_image || null
+    };
+}
+
+function insightFromOverview(data) {
+    const summary = data.summary || {};
+    const dna = summary.brand_dna || {};
+    const character = brandCharacterFromDna(dna);
+    const scores = dna.archetype_scores || {};
+    const dimensions = archetypeOrder.map(key => ({
+        key,
+        name: archetypeLabels[key] || key,
+        score: scores[key] || 0
+    }));
+    return {
+        global_scan: {
+            total_sources: summary.data_sources_count || 0,
+            extracted_count: summary.extracted_count || 0,
+            analyzed_count: summary.analyses_count || 0,
+            readiness_score: summary.data_sources_count ? Math.round((summary.analyses_count || 0) / summary.data_sources_count * 100) : 0,
+            notes: []
+        },
+        archetype_position: {
+            primary_archetype: character.archetype,
+            confidence: dna.brand_archetype?.confidence || (summary.brand_dna_configured ? 80 : 0),
+            dimensions,
+            rationale: dna.brand_archetype?.rationale || dna.summary || '請先到資料中心建立品牌角色。'
+        },
+        brand_positioning: character.positioning,
+        brand_traits: character.traits,
+        brand_voice: character.voice,
+        target_audience: character.target_audience,
+        character
+    };
+}
+
+function roleRows(character) {
+    const rows = [
+        ['品牌定位', character.positioning],
+        ['品牌特色', (character.traits || []).join('、')],
+        ['品牌語氣', character.voice],
+        ['視覺個性', character.visual_personality],
+        ['核心客群', character.target_audience]
+    ];
+    return rows.map(([label, value]) => `<div class="role-row"><strong>${label}</strong><span>${escapeHtml(value || '尚未建立')}</span></div>`).join('');
+}
+
+function setCharacterPromptPreview(prompt, preview) {
+    const details = document.getElementById('characterPromptPreview');
+    const text = document.getElementById('characterPromptText');
+    const displayText = [preview, prompt].filter(Boolean).join('\n\n');
+    latestCharacterImagePrompt = prompt || '';
+    if (!details || !text) return;
+    if (displayText) {
+        text.textContent = displayText;
+        details.hidden = false;
+    } else {
+        text.textContent = '';
+        details.hidden = true;
+    }
+}
+
+function renderCharacterImage(character, fallbackKey) {
+    const image = character.character_image || {};
+    const frame = document.getElementById('characterImageFrame');
+    const img = document.getElementById('characterImage');
+    const status = document.getElementById('characterImageStatus');
+    const button = document.getElementById('generateCharacterImageBtn');
+    const title = document.getElementById('characterImageTitle');
+    const help = document.getElementById('characterImageHelp');
+    const hasImage = image.file_url || image.image_url;
+    const fallbackSrc = archetypeImages[fallbackKey] || archetypeImages.everyman;
+    if (!frame || !img) return;
+    const applyButtonLabel = html => {
+        if (!button) return;
+        if (button.disabled && button.dataset.originalHtml) {
+            button.dataset.originalHtml = html;
+        } else {
+            button.innerHTML = html;
+        }
+    };
+    if (title) title.textContent = character.name || character.archetype || '品牌角色圖';
+    if (hasImage) {
+        img.src = image.file_url || image.image_url;
+        img.alt = `${character.name || '品牌角色'}角色圖`;
+        frame.classList.remove('is-placeholder');
+        if (status) status.textContent = '已產生品牌角色圖';
+        if (help) help.textContent = '角色圖已寫回 Brand DNA；重新產生會依目前資料建立新版角色圖。';
+        applyButtonLabel('<i class="fas fa-rotate me-2"></i>重新產生角色圖');
+        setCharacterPromptPreview(image.prompt || '', '');
+    } else {
+        img.src = fallbackSrc;
+        img.alt = `${character.archetype || '品牌人格'}原型占位圖`;
+        frame.classList.add('is-placeholder');
+        if (status) status.textContent = '尚未產生角色圖';
+        if (help) help.textContent = '依 12 原型、定位、特色、語氣、視覺個性與核心客群產生品牌代言角色。';
+        applyButtonLabel('<i class="fas fa-user-astronaut me-2"></i>產生角色圖');
+        setCharacterPromptPreview('', '');
+    }
+}
+
+function characterImageFromArtifact(item) {
+    if (!item || item.type !== 'brand_character_image') return null;
+    const payload = item.payload || {};
+    const fileUrl = item.file_url || payload.file_url || '';
+    if (!fileUrl) return null;
+    return {
+        artifact_id: item.id || payload.artifact_id || null,
+        file_url: fileUrl,
+        prompt: payload.prompt || '',
+        model: payload.model || '',
+        size: payload.size || '',
+        created_at: item.created_at || ''
+    };
+}
+
+function renderDiagnosis(insight, data) {
+    const summary = data.summary || {};
+    const scan = insight.global_scan || {};
+    const archetype = insight.archetype_position || {};
+    const dnaCharacter = summary.brand_dna?.brand_character || {};
+    const character = {...dnaCharacter, ...(insight.character || {})};
+    if (!character.character_image && dnaCharacter.character_image) character.character_image = dnaCharacter.character_image;
+    if (!character.character_image) character.character_image = characterImageFromArtifact(data.latest_character_image);
+    document.getElementById('sourceTotal').textContent = scan.total_sources ?? summary.data_sources_count ?? 0;
+    document.getElementById('scanScore').textContent = `完成度 ${scan.readiness_score || 0}%`;
+    document.getElementById('readinessFill').style.width = `${scan.readiness_score || 0}%`;
+    const sourceCounts = {};
+    (data.sources || []).forEach(s => sourceCounts[s.source_type] = (sourceCounts[s.source_type] || 0) + 1);
+    document.getElementById('sourceBreakdown').innerHTML = Object.entries(sourceCounts).length ? Object.entries(sourceCounts).map(([key, count]) => `
+        <div class="source-pill"><i class="fas fa-file-lines text-primary"></i><strong>${escapeHtml(sourceLabels[key] || displayLabel(key))}</strong><span class="fw-black">${count}</span></div>
+    `).join('') : '<div class="muted">尚未新增資料。</div>';
+    document.getElementById('archetypeName').textContent = archetype.primary_archetype || '尚未定位';
+    document.getElementById('archetypeConfidence').textContent = `${archetype.confidence || 0}%`;
+    document.getElementById('archetypeRationale').textContent = archetype.rationale || '';
+    setArchetypeImage((archetype.dimensions || [])[0]?.key || archetype.primary_archetype || character.archetype);
+    renderCharacterImage(character, (archetype.dimensions || [])[0]?.key || character.archetype_key || archetype.primary_archetype);
+    document.getElementById('dimensionRows').innerHTML = renderArchetypeRanking(archetype.dimensions || [], summary.brand_dna || {});
+    document.getElementById('roleSummary').innerHTML = roleRows(character);
+    const statusItems = [
+        ['資料來源', summary.data_sources_count || 0],
+        ['已整理', summary.extracted_count || 0],
+        ['已分析', summary.analyses_count || 0],
+        ['品牌角色', summary.brand_dna_configured ? '可用' : '尚未建立']
+    ];
+    document.getElementById('diagStatus').innerHTML = statusItems.map(([label, value]) => `
+        <div class="status-mini">
+            <i class="fas fa-circle-check text-success"></i>
+            <span><strong>${escapeHtml(label)}</strong>${escapeHtml(value)}</span>
+        </div>
+    `).join('');
+}
+
+async function loadDiagnosis() {
+    const data = await apiFetch('/api/overview');
+    latestOverview = data;
+    applySubscription(data.subscription);
+    renderDiagnosis(data.latest_diagnosis?.payload || insightFromOverview(data), data);
+}
+
+document.getElementById('runInsightBtn').addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    setBusy(btn, true, '診斷中');
+    try {
+        const result = await apiFetch('/api/diagnosis/insights', {method:'POST'});
+        const data = await apiFetch('/api/overview');
+        latestOverview = data;
+        renderDiagnosis(result.insight, data);
+        applySubscription(result.subscription);
+        showToast(`已產生品牌角色診斷 #${result.artifact_id}`);
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        setBusy(btn, false);
+    }
+});
+
+document.getElementById('generateCharacterImageBtn').addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    const status = document.getElementById('characterImageStatus');
+    if (!latestOverview?.summary?.brand_dna_configured) {
+        showToast('請先建立品牌角色，再產生角色圖。', true);
+        return;
+    }
+    setBusy(btn, true, '整理提示詞');
+    try {
+        if (status) status.textContent = '正在整理角色圖提示詞...';
+        const promptData = await apiFetch('/api/brand-character-image-prompt', {method:'POST'});
+        setCharacterPromptPreview(promptData.prompt || '', promptData.prompt_preview_zh || '');
+        if (status) status.textContent = '正在生成角色圖，可能需要一點時間...';
+        setBusy(btn, true, '生成圖片中');
+        const imageData = await apiFetch('/api/generate-brand-character-image', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({prompt: promptData.prompt, size: '1024x1536', quality: 'low'})
+        });
+        applySubscription(imageData.subscription);
+        const data = await apiFetch('/api/overview');
+        latestOverview = data;
+        if (imageData.character_image && data.summary?.brand_dna?.brand_character) {
+            data.summary.brand_dna.brand_character.character_image = imageData.character_image;
+        }
+        renderDiagnosis(data.latest_diagnosis?.payload || insightFromOverview(data), data);
+        showToast(`已產生品牌角色圖 #${imageData.artifact_id}`);
+    } catch (err) {
+        if (status) status.textContent = '角色圖生成失敗';
+        showToast(err.message || err, true);
+    } finally {
+        setBusy(btn, false);
+    }
+});
+
+document.getElementById('importDemoBtn').addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    setBusy(btn, true, '匯入中');
+    try {
+        const result = await apiFetch('/api/case/import', {method:'POST'});
+        showToast(`匯入 ${result.imported.length} 筆，略過 ${result.skipped.length} 筆`);
+        await loadDiagnosis();
+    } catch (err) {
+        showToast(err.message, true);
+    } finally {
+        setBusy(btn, false);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => loadDiagnosis().catch(err => showToast(err.message, true)));
+</script>
+{% endblock %}
