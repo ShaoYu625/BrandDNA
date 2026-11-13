@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選擇方案 | BrandDNA Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="/static/brand/favicon.svg?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/brand/favicon-32.png?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/brand/favicon-192.png?v=2">
+    <link rel="apple-touch-icon" href="/static/brand/apple-touch-icon.png?v=2">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3f63e6;
+            --primary-soft: #eef2ff;
+            --ink: #111827;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --surface: #ffffff;
+            --bg: #f6f7fb;
+            --success: #10b981;
+            --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100dvh;
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .plan-page {
+            min-height: 100dvh;
+            display: grid;
+            align-content: center;
+            gap: 28px;
+            padding: 34px 20px;
+        }
+        .plan-header {
+            width: min(1080px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 20px;
+            align-items: end;
+        }
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .logo-mark {
+            flex: 0 0 auto;
+            width: 58px;
+            height: 58px;
+            padding: 4px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+        .logo-mark img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .brand-wordmark {
+            display: block;
+            width: 168px;
+            max-width: 100%;
+            height: auto;
+        }
+        .brand-subtitle {
+            margin-top: 3px;
+        }
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            line-height: 1.05;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+        .lead-copy {
+            max-width: 650px;
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+        .session-note {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px 14px;
+            background: var(--surface);
+            color: var(--muted);
+            box-shadow: var(--shadow);
+            font-size: .86rem;
+            max-width: 280px;
+        }
+        .plan-grid {
+            width: min(1080px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .plan-card {
+            min-height: 430px;
+            display: grid;
+            align-content: space-between;
+            gap: 18px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .plan-top { display: grid; gap: 12px; }
+        .plan-name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .plan-name {
+            margin: 0;
+            font-size: 1.55rem;
+            line-height: 1.1;
+            font-weight: 900;
+        }
+        .plan-price {
+            margin: 0;
+            font-size: 2.3rem;
+            line-height: 1;
+            font-weight: 900;
+        }
+        .plan-price span {
+            color: var(--muted);
+            font-size: .84rem;
+            font-weight: 800;
+        }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 800;
+            background: #f3f4f6;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+        .feature-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .feature-list li {
+            display: grid;
+            grid-template-columns: 20px minmax(0, 1fr);
+            gap: 8px;
+            align-items: start;
+            color: var(--ink);
+            font-size: .92rem;
+            line-height: 1.45;
+        }
+        .feature-list i {
+            margin-top: 3px;
+            color: var(--success);
+            text-align: center;
+        }
+        .feature-list .muted-feature,
+        .feature-list .muted-feature i {
+            color: #9ca3af;
+        }
+        .btn-outline-custom {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--ink);
+            background: #fff;
+            font-weight: 900;
+        }
+        .btn-outline-custom:hover { border-color: var(--primary-color); color: var(--primary-color); background: var(--primary-soft); }
+        @media (max-width: 920px) {
+            .plan-header { grid-template-columns: 1fr; align-items: start; }
+            .session-note { max-width: none; }
+            .plan-grid { grid-template-columns: 1fr; }
+            .plan-card { min-height: auto; }
+        }
+        @media (max-width: 520px) {
+            .plan-page { align-content: start; padding: 22px 14px; }
+            .brand-row { gap: 10px; }
+            .logo-mark { width: 50px; height: 50px; }
+            .brand-wordmark { width: 142px; }
+            h1 { font-size: 2rem; }
+            .plan-card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="plan-page">
+        <section class="plan-header" aria-labelledby="planTitle">
+            <div>
+                <div class="brand-row">
+                    <div class="logo-mark"><img src="/static/brand/branddna-symbol.png" alt="" aria-hidden="true"></div>
+                    <div>
+                        <img class="brand-wordmark" src="/static/brand/branddna-wordmark.png" alt="BrandDNA">
+                        <div class="text-secondary small fw-bold brand-subtitle">智慧品牌顧問</div>
+                    </div>
+                </div>
+                <h1 id="planTitle">選擇本次使用方案</h1>
+                <p class="lead-copy">BrandDNA 現在以一次性使用流程運作。選擇方案後會直接進入儀表板，本次瀏覽的用量會依方案即時更新。</p>
+            </div>
+            <div class="session-note">
+                <i class="fas fa-clock me-1 text-primary" aria-hidden="true"></i>
+                關閉分頁後，下次進入會重新選擇方案；不保存跨次使用狀態。
+            </div>
+        </section>
+
+        <section class="plan-grid" aria-label="方案列表">
+            <article class="plan-card" data-plan="FREE">
+                <div class="plan-top">
+                    <div class="plan-name-row">
+                        <h2 class="plan-name">FREE</h2>
+                    </div>
+                    <p class="plan-price">$0 <span>/ 本次</span></p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-circle-check"></i><span>資料中心與來源分析流程</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>品牌診斷基礎檢視</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>文案生成 1 次、圖片生成 1 次</span></li>
+                        <li class="muted-feature"><i class="fas fa-lock"></i><span>規範守門員需 AIR 以上</span></li>
+                        <li class="muted-feature"><i class="fas fa-lock"></i><span>市場預測需 AIR 以上</span></li>
+                    </ul>
+                </div>
+                <button class="btn btn-outline-custom" type="button" data-select-plan="FREE">使用 FREE</button>
+            </article>
+
+            <article class="plan-card" data-plan="AIR">
+                <div class="plan-top">
+                    <div class="plan-name-row">
+                        <h2 class="plan-name">AIR</h2>
+                    </div>
+                    <p class="plan-price">$8 <span>/ 本次</span></p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-circle-check"></i><span>完整資料中心與品牌診斷</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>文案生成 35 次、圖片生成 35 次</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>規範守門員與安全改寫</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>市場預測與客群接受度分析</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>適合完整展示操作流程</span></li>
+                    </ul>
+                </div>
+                <button class="btn btn-outline-custom" type="button" data-select-plan="AIR">使用 AIR</button>
+            </article>
+
+            <article class="plan-card" data-plan="PRO">
+                <div class="plan-top">
+                    <div class="plan-name-row">
+                        <h2 class="plan-name">PRO</h2>
+                    </div>
+                    <p class="plan-price">$15 <span>/ 本次</span></p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-circle-check"></i><span>包含 AIR 的全部功能</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>文案與圖片生成無方案上限</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>規範守門員完整開放</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>市場預測完整開放</span></li>
+                        <li><i class="fas fa-circle-check"></i><span>適合高密度展示與反覆測試</span></li>
+                    </ul>
+                </div>
+                <button class="btn btn-outline-custom" type="button" data-select-plan="PRO">使用 PRO</button>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const PLAN_STORAGE_KEY = 'branddna:selectedPlan';
+        const RUN_STORAGE_KEY = 'branddna:runId';
+        const VALID_PLANS = new Set(['FREE', 'AIR', 'PRO']);
+
+        function fallbackRunId() {
+            if (window.crypto?.getRandomValues) {
+                const bytes = new Uint32Array(2);
+                window.crypto.getRandomValues(bytes);
+                return `run-${Date.now().toString(36)}-${Array.from(bytes).map(value => value.toString(36)).join('')}`;
+            }
+            return `run-${Date.now().toString(36)}`;
+        }
+
+        function ensureRunId() {
+            let runId = sessionStorage.getItem(RUN_STORAGE_KEY);
+            if (!runId) {
+                runId = window.crypto?.randomUUID ? window.crypto.randomUUID() : fallbackRunId();
+                sessionStorage.setItem(RUN_STORAGE_KEY, runId);
+            }
+            return runId;
+        }
+
+        function nextPath() {
+            const params = new URLSearchParams(window.location.search);
+            const raw = params.get('next') || '/dashboard';
+            if (!raw.startsWith('/') || raw.startsWith('//') || raw === '/') return '/dashboard';
+            return raw;
+        }
+
+        document.querySelectorAll('[data-select-plan]').forEach(button => {
+            button.addEventListener('click', () => {
+                const plan = String(button.dataset.selectPlan || '').toUpperCase();
+                if (!VALID_PLANS.has(plan)) return;
+                sessionStorage.setItem(PLAN_STORAGE_KEY, plan);
+                ensureRunId();
+                window.location.href = nextPath();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+name = "branddna-demo-api"
+main = "src/index.ts"
+compatibility_date = "2026-06-16"
+workers_dev = true
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 0.1
+
+[vars]
+ENVIRONMENT = "demo"
+OBJECT_STORAGE = "d1"
+OPENAI_WEEKLY_BUDGET_USD = "3"
+OPENAI_MODEL_SOURCE_ANALYSIS = "gpt-6-luna"
+OPENAI_MODEL_BRAND_DNA = "gpt-6.1-terra"
+OPENAI_MODEL_DIAGNOSIS = "gpt-6-luna"
+OPENAI_MODEL_IMAGE_PROMPT = "gpt-6-luna"
+OPENAI_MODEL_BRAND_IMAGE = "gpt-image-2.5-flare"
+OPENAI_MODEL_CHARACTER_IMAGE = "gpt-image-2.5-flare"
+OPENAI_MODEL_CONTENT_GENERATION = "gpt-6-luna"
+OPENAI_MODEL_MARKETING_SUGGESTIONS = "gpt-6-luna"
+OPENAI_MODEL_RISK_CHECK = "gpt-6.1-terra"
+OPENAI_MODEL_SIMULATION = "gpt-6-luna"
+OPENAI_MODEL_OCR = "gpt-6-luna"
+OPENAI_MODEL_DEFAULT = "gpt-6-luna"
+OPENAI_REASONING_DEFAULT = "none"
+OPENAI_REASONING_BRAND_DNA = "none"
+OPENAI_REASONING_RISK_CHECK = "none"
+OPENAI_VERBOSITY_DEFAULT = "medium"
+OPENAI_IMAGE_DETAIL_OCR = "high"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "branddna-demo-db"
+database_id = "02240967-3ae2-4578-8b03-0e04f047512c"
+migrations_dir = "./migrations"
+
+[browser]
+binding = "BROWSER"
+
+# Same food-truck workspace class as wrangler.foodtruck.toml (also used by local `npm run dev:api`).
+[[durable_objects.bindings]]
+name = "TRUCK_WORKSPACE"
+class_name = "TruckWorkspace"
+
+[[migrations]]
+tag = "v1-truck-workspace"
+new_sqlite_classes = ["TruckWorkspace"]

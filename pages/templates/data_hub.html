@@ -1,0 +1,1147 @@
+{% extends "base.html" %}
+
+{% block page_title %}資料中心{% endblock %}
+{% block page_subtitle %}逐一輸入品牌資料來源，可依來源選擇自動擷取或手動輸入。{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hub-grid {
+        height: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(360px, 1.08fr) minmax(320px, 0.92fr) minmax(280px, 0.72fr);
+        grid-template-rows: 104px minmax(0, 1fr);
+        gap: 14px;
+    }
+    .hub-metrics { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .scan-source-grid { display: grid; gap: 10px; }
+    .scan-source-card, .source-row, .job-row, .fallback-panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8fafc;
+        margin-bottom: 10px;
+    }
+    .scan-source-card[data-filled="true"] { border-color: #93c5fd; background: #eff6ff; }
+    .scan-source-card[data-status="ok"] { border-color: #86efac; background: #f0fdf4; }
+    .scan-source-card[data-status="error"] { border-color: #fecaca; background: #fef2f2; }
+    .scan-source-card[data-open="false"] > :not(.scan-source-head) { display: none !important; }
+    .scan-source-card[data-open="false"] [data-fill-source-demo],
+    .scan-source-card[data-open="false"] .demo-case-menu { display: none !important; }
+    .scan-source-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+    .scan-source-title { display: grid; gap: 3px; min-width: 0; }
+    .scan-source-actions { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+    .demo-case-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        z-index: 80;
+        display: grid;
+        gap: 6px;
+        width: min(280px, 78vw);
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+    }
+    .demo-case-menu[hidden] { display: none !important; }
+    .demo-case-menu[data-placement="top"] {
+        top: auto;
+        bottom: calc(100% + 8px);
+    }
+    .demo-case-option {
+        display: grid;
+        gap: 2px;
+        width: 100%;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        padding: 8px;
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+    }
+    .demo-case-option:hover,
+    .demo-case-option:focus {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        outline: none;
+    }
+    .demo-case-option strong { font-size: 0.84rem; }
+    .demo-case-option span { color: var(--muted); font-size: 0.75rem; line-height: 1.35; }
+    .source-card-footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+    .scan-source-card input { margin-top: 8px; }
+    .rule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .rule-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px;
+        background: #fff;
+        font-size: 0.82rem;
+    }
+    .scan-panel.hidden { display: none; }
+    .scan-source-mode { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+    .source-mode-panel { display: none; margin-top: 10px; }
+    .scan-source-card[data-mode="url"] [data-mode-panel="url"],
+    .scan-source-card[data-mode="manual"] [data-mode-panel="manual"] { display: block; }
+    .auto-social-posts { display: grid; gap: 10px; margin-top: 10px; }
+    .auto-crawl-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+    .manual-panel { display: none; }
+    .manual-panel.open { display: block; }
+    .manual-social-posts { display: none; gap: 10px; margin-bottom: 12px; }
+    .manual-social-posts.open { display: grid; }
+    .manual-post-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fff;
+    }
+    .source-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .source-actions .btn { width: 100%; }
+    .source-detail-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+    .source-detail-panel { display: none; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 10px; margin-top: 8px; }
+    .source-detail-panel.open { display: block; }
+    .source-detail-text { max-height: 280px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-size: 0.82rem; line-height: 1.55; margin: 0; }
+    .source-summary-list { margin: 6px 0 0; padding-left: 18px; }
+    .fallback-panel { display: none; background: #fff; margin-top: 10px; }
+    .fallback-panel.open { display: grid; gap: 8px; }
+    .next-step { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
+    .guide-note {
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #eff6ff;
+        color: #1e3a8a;
+        margin-bottom: 12px;
+    }
+    .field-help { color: var(--muted); font-size: 0.78rem; margin-top: 6px; margin-bottom: 0; }
+    @media (max-width: 1062px) {
+        .hub-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr); overflow: auto; }
+        .hub-metrics { grid-template-columns: repeat(2, 1fr); }
+        .hub-grid > .dash-card:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 760px) {
+        .hub-grid { grid-template-columns: 1fr; }
+        .hub-grid > .dash-card:last-child { grid-column: auto; }
+        .rule-grid, .source-actions { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-fit hub-grid">
+    <div class="hub-metrics">
+        <div class="dash-card"><div class="muted fw-bold">資料來源</div><div class="metric" id="metricSources">0</div></div>
+        <div class="dash-card"><div class="muted fw-bold">已整理</div><div class="metric" id="metricExtracted">0</div></div>
+        <div class="dash-card"><div class="muted fw-bold">已分析</div><div class="metric" id="metricAnalyzed">0</div></div>
+        <div class="dash-card"><div class="muted fw-bold">品牌角色</div><div class="metric fs-3" id="metricDna">--</div></div>
+    </div>
+
+    <div class="dash-card scroll-panel">
+        <div class="card-title-row">
+            <h2 id="dataModeTitle"><i class="fas fa-database me-2"></i>1. 資料輸入</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-custom btn-reset" id="resetAllBtn" type="button" data-reset-workspace>重設工作區</button>
+                <button class="btn btn-sm btn-outline-custom" id="manualToggleBtn" type="button">新增其他資料</button>
+            </div>
+        </div>
+        <div class="scan-panel" id="globalScanPanel">
+            <div class="guide-note" id="scanRequirement">請至少填寫 3 種資料來源；每種來源可各自送出，也可一次送出全部。</div>
+            <form id="globalScanForm" enctype="multipart/form-data">
+                <div class="scan-source-grid">
+                    <div class="scan-source-card" data-source-card="instagram" data-mode="manual" data-open="false">
+                        <div class="scan-source-head"><div class="scan-source-title"><strong>Instagram</strong><span class="muted fine">貼文、公告與日常互動</span></div><div class="scan-source-actions"><button class="btn btn-sm btn-outline-custom" type="button" data-fill-source-demo="instagram" aria-expanded="false">填寫來源示範</button><span class="tag" data-source-status="instagram">待填寫</span><button class="btn btn-sm btn-outline-custom" type="button" data-toggle-source="instagram">展開</button></div></div>
+                        <div class="scan-source-mode">
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="instagram_mode" value="url" data-source-mode="instagram"> <span>自動擷取 URL</span></label>
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="instagram_mode" value="manual" data-source-mode="instagram" checked> <span>手動輸入</span></label>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="url">
+                            <div class="auto-crawl-row">
+                                <input class="form-control" name="instagram_url" data-source-url="instagram" placeholder="https://www.instagram.com/...">
+                                <button class="btn btn-sm btn-primary-gradient" type="button" data-crawl-social="instagram">確認擷取</button>
+                            </div>
+                            <div class="auto-social-posts">
+                                {% for index in range(1, 6) %}
+                                <div class="manual-post-card">
+                                    <label class="form-label fw-bold fine">自動貼文 {{ index }}</label>
+                                    <textarea class="form-control" name="instagram_auto_post_content_{{ index }}" data-auto-post-field="instagram" rows="3" placeholder="按確認擷取後自動回填"></textarea>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="manual">
+                            {% for index in range(1, 6) %}
+                            <div class="manual-post-card">
+                                <label class="form-label fw-bold fine">貼文 {{ index }} 內容</label>
+                                <textarea class="form-control mb-2" name="instagram_post_content_{{ index }}" rows="3" placeholder="貼上第 {{ index }} 篇貼文文字"></textarea>
+                                <label class="form-label fw-bold fine">貼文 {{ index }} 圖片</label>
+                                <input class="form-control" type="file" name="instagram_post_image_{{ index }}" accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,.tif,.tiff,image/*">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="field-help">自動爬取最新 5 則公開貼文，並保存可抓取的貼文圖片。</div>
+                        <div class="source-card-footer">
+                            <button class="btn btn-sm btn-primary-gradient" type="button" data-submit-source="instagram">送出此來源</button>
+                        </div>
+                    </div>
+                    <div class="scan-source-card" data-source-card="facebook" data-mode="manual" data-open="false">
+                        <div class="scan-source-head"><div class="scan-source-title"><strong>Facebook</strong><span class="muted fine">營業公告、社群長文與熟客提醒</span></div><div class="scan-source-actions"><button class="btn btn-sm btn-outline-custom" type="button" data-fill-source-demo="facebook" aria-expanded="false">填寫來源示範</button><span class="tag" data-source-status="facebook">待填寫</span><button class="btn btn-sm btn-outline-custom" type="button" data-toggle-source="facebook">展開</button></div></div>
+                        <div class="scan-source-mode">
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="facebook_mode" value="url" data-source-mode="facebook"> <span>自動擷取 URL</span></label>
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="facebook_mode" value="manual" data-source-mode="facebook" checked> <span>手動輸入</span></label>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="url">
+                            <div class="auto-crawl-row">
+                                <input class="form-control" name="facebook_url" data-source-url="facebook" placeholder="https://www.facebook.com/...">
+                                <button class="btn btn-sm btn-primary-gradient" type="button" data-crawl-social="facebook">確認擷取</button>
+                            </div>
+                            <div class="auto-social-posts">
+                                {% for index in range(1, 6) %}
+                                <div class="manual-post-card">
+                                    <label class="form-label fw-bold fine">自動貼文 {{ index }}</label>
+                                    <textarea class="form-control" name="facebook_auto_post_content_{{ index }}" data-auto-post-field="facebook" rows="3" placeholder="按確認擷取後自動回填"></textarea>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="manual">
+                            {% for index in range(1, 6) %}
+                            <div class="manual-post-card">
+                                <label class="form-label fw-bold fine">貼文 {{ index }} 內容</label>
+                                <textarea class="form-control mb-2" name="facebook_post_content_{{ index }}" rows="3" placeholder="貼上第 {{ index }} 篇貼文文字"></textarea>
+                                <label class="form-label fw-bold fine">貼文 {{ index }} 圖片</label>
+                                <input class="form-control" type="file" name="facebook_post_image_{{ index }}" accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,.tif,.tiff,image/*">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="field-help">自動爬取最新 5 則公開貼文，並保存可抓取的貼文圖片；不使用登入或粉專 API。</div>
+                        <div class="source-card-footer">
+                            <button class="btn btn-sm btn-primary-gradient" type="button" data-submit-source="facebook">送出此來源</button>
+                        </div>
+                    </div>
+                    <div class="scan-source-card" data-source-card="website" data-mode="url" data-open="false">
+                        <div class="scan-source-head"><div class="scan-source-title"><strong>官網</strong><span class="muted fine">品牌故事、菜單、門市與公告</span></div><div class="scan-source-actions"><button class="btn btn-sm btn-outline-custom" type="button" data-fill-source-demo="website" aria-expanded="false">填寫來源示範</button><span class="tag" data-source-status="website">待填寫</span><button class="btn btn-sm btn-outline-custom" type="button" data-toggle-source="website">展開</button></div></div>
+                        <div class="scan-source-mode">
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="website_mode" value="url" data-source-mode="website" checked> <span>自動擷取 URL</span></label>
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="website_mode" value="manual" data-source-mode="website"> <span>手動輸入</span></label>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="url">
+                            <input class="form-control" name="website_url" data-source-url="website" placeholder="https://example.com">
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="manual">
+                            <textarea class="form-control" name="website_content" data-source-manual="website" rows="5" placeholder="貼上官網重點文字"></textarea>
+                        </div>
+                        <div class="field-help">Agentic Site Explorer 會從首頁、sitemap、導覽列與頁面連結探索整個官網，最多 20 頁 / 3 層。</div>
+                        <div class="source-card-footer">
+                            <button class="btn btn-sm btn-primary-gradient" type="button" data-submit-source="website">送出此來源</button>
+                        </div>
+                    </div>
+                    <div class="scan-source-card" data-source-card="google_maps" data-mode="url" data-open="false">
+                        <div class="scan-source-head"><div class="scan-source-title"><strong>Google 商家/地圖</strong><span class="muted fine">商家資訊、地點與評論脈絡</span></div><div class="scan-source-actions"><button class="btn btn-sm btn-outline-custom" type="button" data-fill-source-demo="google_maps" aria-expanded="false">填寫來源示範</button><span class="tag" data-source-status="google_maps">待填寫</span><button class="btn btn-sm btn-outline-custom" type="button" data-toggle-source="google_maps">展開</button></div></div>
+                        <div class="scan-source-mode">
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="google_maps_mode" value="url" data-source-mode="google_maps" checked> <span>自動擷取 URL</span></label>
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="google_maps_mode" value="manual" data-source-mode="google_maps"> <span>手動輸入</span></label>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="url">
+                            <input class="form-control" name="google_maps_url" data-source-url="google_maps" placeholder="https://maps.google.com/...">
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="manual">
+                            <textarea class="form-control" name="google_maps_content" data-source-manual="google_maps" rows="5" placeholder="貼上 Google 商家或地圖資訊"></textarea>
+                        </div>
+                        <div class="field-help">公開地圖頁單頁快照，盡量抓取可見商家資訊與評論。</div>
+                        <div class="source-card-footer">
+                            <button class="btn btn-sm btn-primary-gradient" type="button" data-submit-source="google_maps">送出此來源</button>
+                        </div>
+                    </div>
+                    <div class="scan-source-card" data-source-card="recruitment" data-mode="url" data-open="false">
+                        <div class="scan-source-head"><div class="scan-source-title"><strong>招募人才網站</strong><span class="muted fine">職缺、文化、能力條件與工作節奏</span></div><div class="scan-source-actions"><button class="btn btn-sm btn-outline-custom" type="button" data-fill-source-demo="recruitment" aria-expanded="false">填寫來源示範</button><span class="tag" data-source-status="recruitment">待填寫</span><button class="btn btn-sm btn-outline-custom" type="button" data-toggle-source="recruitment">展開</button></div></div>
+                        <div class="scan-source-mode">
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="recruitment_mode" value="url" data-source-mode="recruitment" checked> <span>自動擷取 URL</span></label>
+                            <label class="rule-item mb-0"><input class="form-check-input mt-1" type="radio" name="recruitment_mode" value="manual" data-source-mode="recruitment"> <span>手動輸入</span></label>
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="url">
+                            <input class="form-control" name="recruitment_url" data-source-url="recruitment" placeholder="https://www.104.com.tw/... 或 https://www.1111.com.tw/...">
+                        </div>
+                        <div class="source-mode-panel" data-mode-panel="manual">
+                            <textarea class="form-control" name="recruitment_content" data-source-manual="recruitment" rows="5" placeholder="貼上招募頁或人才需求文字"></textarea>
+                        </div>
+                        <div class="field-help">104/1111 或公開招募頁，最多延伸 3 頁。</div>
+                        <div class="source-card-footer">
+                            <button class="btn btn-sm btn-primary-gradient" type="button" data-submit-source="recruitment">送出此來源</button>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="form-label fw-bold fine mt-2">店家認為需要遵守的法律規範</label>
+                <div class="rule-grid mb-3" id="legalRules">
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="食品安全衛生管理法"> <span>食品安全衛生管理法</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="食品良好衛生規範準則"> <span>食品良好衛生規範準則</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="食品安全管制系統準則"> <span>食品安全管制系統準則</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="食品添加物使用範圍及限量暨規格標準"> <span>食品添加物使用範圍及限量暨規格標準</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="消費者保護法"> <span>消費者保護法</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="公平交易法 / 網路廣告不實相關規範"> <span>公平交易法 / 網路廣告不實相關規範</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="個人資料保護法 / 施行細則"> <span>個人資料保護法 / 施行細則</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="勞動基準法"> <span>勞動基準法</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="職業安全衛生法"> <span>職業安全衛生法</span></label>
+                    <label class="rule-item"><input class="form-check-input mt-1" type="checkbox" value="廢棄物清理法"> <span>廢棄物清理法</span></label>
+                </div>
+
+                <label class="form-label fw-bold fine">店家內部既有規範</label>
+                <textarea class="form-control mb-3" id="internalRules" rows="4" placeholder="例如：禁用誇大療效字眼、回覆評論語氣、員工服務規範、品牌禁語等。"></textarea>
+                <button class="btn btn-primary-gradient w-100" id="globalScanBtn" type="submit" disabled>
+                    <i class="fas fa-layer-group me-2"></i>送出全部可用來源
+                </button>
+            </form>
+        </div>
+
+        <div class="manual-panel" id="manualPanel">
+            <div class="card-title-row">
+                <h3 class="fs-6 fw-black mb-0">手動輸入備案</h3>
+            </div>
+            <form id="sourceForm">
+                <label class="form-label fw-bold fine">資料類型</label>
+                <select class="form-select mb-3" name="source_type">
+                    <option value="instagram">Instagram</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="google_maps">Google 商家/地圖</option>
+                    <option value="google_reviews">Google 評論</option>
+                    <option value="website">官網 / 品牌頁</option>
+                    <option value="recruitment">招募內容</option>
+                    <option value="compliance_rule">法律規範</option>
+                    <option value="internal_rule">內部規範</option>
+                    <option value="custom">其他資料</option>
+                </select>
+                <div class="guide-note py-2" id="manualSocialHint">
+                    IG / FB 手動輸入需填寫 5 篇貼文內文，且每篇都要上傳一張圖片。
+                </div>
+                <label class="form-label fw-bold fine">標題</label>
+                <input class="form-control mb-3" name="title" placeholder="例如：Google 評論 2026 Q1">
+                <label class="form-label fw-bold fine">URL</label>
+                <input class="form-control mb-3" name="url" placeholder="https://...">
+                <div class="manual-social-posts" id="manualSocialPosts">
+                    {% for index in range(1, 6) %}
+                    <div class="manual-post-card">
+                        <label class="form-label fw-bold fine">貼文 {{ index }} 內文</label>
+                        <textarea class="form-control mb-2" name="post_content_{{ index }}" rows="4" placeholder="輸入第 {{ index }} 篇貼文內文"></textarea>
+                        <label class="form-label fw-bold fine">貼文 {{ index }} 圖片</label>
+                        <input class="form-control" type="file" name="post_image_{{ index }}" accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,.tif,.tiff,image/*">
+                    </div>
+                    {% endfor %}
+                </div>
+                <div data-general-content>
+                    <label class="form-label fw-bold fine">手動內容</label>
+                    <textarea class="form-control mb-3" name="content" rows="6" placeholder="貼上文字、評論、貼文、規範內容"></textarea>
+                </div>
+                <div data-general-file>
+                    <label class="form-label fw-bold fine">檔案 / 圖片</label>
+                    <input class="form-control mb-3" type="file" name="file" accept=".txt,.md,.csv,.json,.html,.htm,.pdf,.docx,.xlsx,.xls,.pptx,.png,.jpg,.jpeg,.webp,.gif,.bmp,.tif,.tiff">
+                </div>
+                <button class="btn btn-primary-gradient w-100" type="submit">新增手動資料</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dash-card scroll-panel">
+        <div class="card-title-row">
+            <h2><i class="fas fa-database me-2"></i>2. 來源處理</h2>
+            <button class="btn btn-sm btn-outline-custom" id="refreshBtn">重新整理</button>
+        </div>
+        <div id="workflowHint" class="guide-note"></div>
+        <div id="sourceList"></div>
+    </div>
+
+    <div class="dash-card scroll-panel">
+        <div class="card-title-row">
+            <h2><i class="fas fa-user-pen me-2"></i>3. 品牌角色</h2>
+            <button class="btn btn-sm btn-primary-gradient" id="runPipelineBtn">重新建立品牌角色</button>
+        </div>
+        <div id="dnaPanel" class="mb-3"></div>
+        <div class="muted fine mb-3">資料送出後會自動整理、分析並建立品牌角色；這裡保留手動重跑管線。</div>
+        <h3 class="fs-6 fw-black">處理紀錄</h3>
+        <div id="jobList"></div>
+        <h3 class="fs-6 fw-black mt-3">系統紀錄</h3>
+        <div class="muted fine mb-2">最近 50 筆事件，同步寫入 Cloudflare D1 system_logs 與 R2 logs。</div>
+        <div id="systemLogList"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function statusTag(status) {
+    if (['extracted','analyzed','done'].includes(status)) return 'tag-green';
+    if (['error','failed','needs_manual_text'].includes(status)) return 'tag-red';
+    if (['running','queued'].includes(status)) return 'tag-yellow';
+    return 'tag-blue';
+}
+
+const HUB_SOURCE_TYPE_LABELS = {
+    instagram: 'Instagram',
+    facebook: 'Facebook',
+    google_maps: 'Google 商家/地圖',
+    google_reviews: 'Google 評論',
+    website: '官網 / 品牌頁',
+    menu: '菜單',
+    recruitment: '招募內容',
+    compliance_rule: '法律規範',
+    internal_rule: '內部規範',
+    custom: '其他資料',
+};
+const HUB_INPUT_KIND_LABELS = {text: '文字', url: 'URL', file: '檔案', image: '圖片'};
+const HUB_STATUS_LABELS = {
+    not_extracted: '尚未整理',
+    not_analyzed: '尚未分析',
+    extracted: '已整理',
+    analyzed: '已分析',
+    done: '完成',
+    running: '處理中',
+    queued: '排隊中',
+    error: '發生錯誤',
+    failed: '失敗',
+    needs_manual_text: '需要手動補資料',
+};
+const DEMO_IMAGE_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC';
+const DEFAULT_DEMO_CASE_KEY = 'zao_shih';
+const DEMO_CASES = {
+    zao_shih: {
+        label: '沒事早事坐',
+        description: '台式早午餐小店，現做餐點與熟客公告。',
+        urls: {
+            instagram: 'https://www.instagram.com/zao_shih/',
+            facebook: 'https://www.facebook.com/p/%E6%B2%92%E4%BA%8B%E6%97%A9%E4%BA%8B%E5%9D%90-100063780851716/',
+            website: 'https://zaoshih.weebly.com/',
+            google_maps: 'https://maps.app.goo.gl/oPqidhzV9qVvXftS6',
+            recruitment: 'https://www.104.com.tw/company/1a2x6bjt56?jobsource=google',
+        },
+        manualText: {
+            website: `品牌官網手動摘要
+店名：早事早午餐
+定位：中山區巷弄早餐與早午餐小店，主打現做餐點、厚蛋三明治、蘿蔔糕與沙拉碗。
+品牌語氣：直接、清楚、重視規則，會提醒餐點現做需要等待，也會清楚公告店休與供應品項。
+核心賣點：真材實料、現點現做、小店溫度、透明公告、熟客信任。
+使用者常見需求：確認今日是否營業、是否有蘿蔔糕、外帶等待時間、是否可內用、是否能帶外食。`,
+            google_maps: `Google 商家/地圖手動摘要
+地址：台北市中山區新生北路二段巷弄內。
+營業型態：早餐、早午餐、外帶與少量內用座位。
+評論重點：餐點份量扎實，蘿蔔糕與厚蛋三明治受歡迎；尖峰時段等待較久，但多數顧客理解現做需要時間。
+常見建議：希望更即時公告營業時間、今日供應品項與外帶等待時間。
+風險提醒：店家規則若表達太硬，第一次來的客人可能覺得距離感較高。`,
+            recruitment: `招募資訊手動摘要
+職缺：早午餐內外場兼職夥伴。
+工作內容：備料、煎台協助、點餐結帳、出餐包裝、環境清潔、客人候位與外帶提醒。
+需要特質：守時、細心、能接受尖峰節奏、願意照 SOP 溝通店內規則。
+品牌文化：小店重視互相補位與透明溝通，餐點現做不催快，服務上要能清楚說明等待時間。
+招募訊息重點：不需要浮誇話術，重視穩定、負責、願意學。`,
+        },
+        socialPosts: {
+            instagram: [
+                '明天有蘿蔔糕。數量不多，想吃可以先私訊保留；餐點現做需要時間，趕時間請斟酌。',
+                '厚蛋三明治今天會做到下午一點，內用座位少，尖峰時間請先看現場狀況。謝謝大家等候。',
+                '本週店休改為週三。出門前請先看公告，不要白跑；小店休假不固定，會盡量提早更新。',
+                '沙拉碗今天有雞胸與菇菇兩種，醬另外附。想吃清爽一點的朋友可以參考。',
+                '提醒一下，店內不要帶外食和飲料。規則寫清楚是希望大家都舒服，謝謝配合。',
+            ],
+            facebook: [
+                '本週營業時間公告：週一、週二、週四到週日正常營業，週三店休。若臨時調整會再更新。',
+                '外帶尖峰大約需要 20 到 30 分鐘，餐點都是現做，不是故意慢。上班前趕時間可以先訊息確認。',
+                '今天蘿蔔糕售完，厚蛋三明治和奶茶還有。謝謝大家一早來支持，晚點會補明日供應公告。',
+                '第一次來的客人可以先看菜單和店內規則：不要帶外食飲料、座位不多、餐點現做需等待。',
+                '謝謝熟客幫忙把杯盤放回回收區。小店人手有限，大家一點點協助都很有幫助。',
+            ],
+        },
+        imageFiles: [
+            'zao_shih_menu.jpg',
+            'zao_shih_egg_pancake_1.jpg',
+            'zao_shih_egg_pancake_2.jpg',
+            'zao_shih_milk_tea.jpg',
+            'zao_shih_corn_pancake.jpg',
+        ],
+    },
+    premium_coffee: {
+        label: '嶼光咖啡',
+        description: '高價精品咖啡店，美式約 NT$150，主打單品豆與安靜體驗。',
+        urls: {
+            instagram: 'https://www.instagram.com/islelight.coffee/',
+            facebook: 'https://www.facebook.com/islelightcoffee/',
+            website: 'https://example.com/islelight-coffee',
+            google_maps: 'https://maps.google.com/?q=%E5%B6%BC%E5%85%89%E5%92%96%E5%95%A1',
+            recruitment: 'https://www.104.com.tw/company/islelight-coffee',
+        },
+        manualText: {
+            website: `品牌官網手動摘要
+店名：嶼光咖啡 Islelight Coffee
+定位：台北大安區高價精品咖啡店，主打單品豆、美式咖啡、手沖與少量甜點。美式咖啡 NT$150，手沖依豆款 NT$220-360，季節配方拿鐵 NT$190。
+品牌語氣：冷靜、精準、低調但有專業感，避免過度熱鬧的折扣語言。重視風味透明、沖煮參數、產地資訊與安靜停留品質。
+空間體驗：18 個座位，保留吧台互動與窗邊閱讀座；尖峰限時 90 分鐘，不接受外食，低消一杯飲品。座位間距較寬，音樂音量低，適合一人閱讀、短會議與咖啡探索。
+核心賣點：每日校正濃縮參數、固定杯測紀錄、清楚標示豆單產區與處理法、甜點低甜度、服務人員能解釋風味但不強迫推銷。
+菜單重點：美式咖啡 NT$150、冰美式 NT$160、單品手沖 NT$220 起、燕麥奶拿鐵 NT$210、檸檬磅蛋糕 NT$180、海鹽焦糖布丁 NT$160。
+使用者常見需求：是否值得高單價、豆款風味、是否可久坐、是否安靜、是否有插座、外帶杯品質、手沖等待時間。`,
+            google_maps: `Google 商家/地圖手動摘要
+地址：台北市大安區瑞安街 135 巷內一樓。
+營業型態：精品咖啡、手沖、吧台座位、少量內用與外帶。平日 10:30-19:00，週二公休。
+價格帶：美式咖啡約 NT$150，手沖 NT$220-360，甜點 NT$160-220。顧客普遍認為價格偏高，但願意為豆款、空間與服務說明付費。
+評論重點：
+評論 1 (★★★★★)：冰美式 NT$160 但層次乾淨，酸值明亮不尖。店員會說明豆子處理法，適合想認真喝咖啡的人。
+評論 2 (★★★★)：環境安靜，座位不多，假日下午會等。價格比連鎖高很多，但杯子、冰塊和出杯穩定度都有感。
+評論 3 (★★★★)：手沖等了快 12 分鐘，店員有先告知。哥倫比亞厭氧豆香氣明顯，甜點低甜不搶味。
+評論 4 (★★★)：美式 150 對每天喝的人負擔高，若只是想買便宜咖啡不一定適合。希望菜單可以更清楚標示內用低消與限時。
+常見建議：把今日豆單放到 IG 置頂，公告尖峰候位與手沖等待時間，避免第一次來的客人誤會價格與規則。`,
+            recruitment: `招募資訊手動摘要
+職缺：精品咖啡外場 / 吧台培訓夥伴。
+工作內容：接待與座位安排、飲品出杯、手沖與濃縮基礎訓練、甜點盤點、豆單介紹、杯測紀錄、環境清潔、社群限動更新。
+需要特質：能清楚說明高單價背後的豆款與製程價值，願意學習沖煮參數，服務語氣穩定不推銷，能接受尖峰時段仍維持細節。
+品牌文化：重視專業但不擺架子；每週一次員工杯測，記錄萃取參數與顧客回饋。溝通方式偏精準、安靜、尊重顧客節奏。
+排班需求：平日早班 09:30-15:30、晚班 13:30-20:00，假日需輪班。具咖啡相關經驗佳，無經驗可從外場與基礎義式開始。
+招募訊息重點：不以熱情口號包裝工作，強調穩定、細節、學習能力與對高品質服務的耐心。`,
+        },
+        socialPosts: {
+            instagram: [
+                '今日美式使用衣索比亞 Guji 水洗豆，熱美式 NT$150，冰美式 NT$160。風味是白花、檸檬皮和乾淨尾韻，適合不想喝太厚重的人。',
+                '本週手沖豆單更新：哥倫比亞厭氧日曬、肯亞 AA、瓜地馬拉水洗。手沖等待約 8 到 12 分鐘，我們會依每支豆調整水溫與研磨。',
+                '假日下午座位容易滿，內用低消一杯飲品，尖峰限時 90 分鐘。不是想趕人，是希望每位客人都能有穩定安靜的位置。',
+                '新甜點：海鹽焦糖布丁 NT$160。甜度刻意降低，焦糖會帶一點苦韻，搭配冰美式或中焙拿鐵都可以。',
+                '如果你第一次來，不確定要點什麼，可以直接說你喜歡酸一點、厚一點，或只是想要一杯乾淨的美式。我們會用最少的問題幫你選。',
+            ],
+            facebook: [
+                '六月豆單公告：美式咖啡維持 NT$150 起，手沖依豆款 NT$220-360。所有豆款會標示產區、處理法與烘焙日期，現場也能詢問建議沖煮方向。',
+                '關於價格，我們想說清楚：嶼光不是外帶快速咖啡定位。杯子、冰塊、豆款耗損、每日校正與安靜座位都在成本裡。若只需要便宜咖啡，附近有更多適合選擇。',
+                '本週二公休，週三 10:30 正常營業。外帶美式可提前訊息預訂，手沖因為需要現場沖煮，仍建議保留 10 分鐘以上。',
+                '內用提醒：低消一杯飲品，不接外食，假日尖峰限時 90 分鐘。店內音量會維持較低，若需要長時間多人討論，建議避開假日下午。',
+                '我們正在招募吧台培訓夥伴。需要能穩定做細節、願意杯測與記錄，不需要把咖啡講得很神秘，但要能把價格、風味與等待時間說清楚。',
+            ],
+        },
+        imageFiles: [],
+    },
+};
+const SOCIAL_MANUAL_TYPES = new Set(['instagram', 'facebook']);
+const SOCIAL_POST_COUNT = 5;
+const GLOBAL_SCAN_SOURCE_TYPES = ['instagram', 'facebook', 'website', 'google_maps', 'recruitment'];
+
+function sourceTypeLabel(value) { return HUB_SOURCE_TYPE_LABELS[value] || displayLabel(value); }
+function inputKindLabel(value) { return HUB_INPUT_KIND_LABELS[value] || value || '未知'; }
+function statusLabel(value) { return HUB_STATUS_LABELS[value] || displayLabel(value, STATUS_LABELS); }
+function validHttpUrl(value) {
+    try {
+        const url = new URL(value);
+        return ['http:', 'https:'].includes(url.protocol);
+    } catch (_) {
+        return false;
+    }
+}
+function sourceMode(type) {
+    return document.querySelector(`[data-source-mode="${type}"]:checked`)?.value || 'url';
+}
+function socialManualComplete(type) {
+    for (let index = 1; index <= SOCIAL_POST_COUNT; index += 1) {
+        const content = document.querySelector(`[name="${type}_post_content_${index}"]`)?.value.trim();
+        const image = document.querySelector(`[name="${type}_post_image_${index}"]`)?.files?.[0];
+        if (!content || !image) return false;
+    }
+    return true;
+}
+function validScanSources() {
+    return GLOBAL_SCAN_SOURCE_TYPES.filter(type => {
+        const mode = sourceMode(type);
+        if (mode === 'url') {
+            return validHttpUrl(document.querySelector(`[data-source-url="${type}"]`)?.value.trim() || '');
+        }
+        if (SOCIAL_MANUAL_TYPES.has(type)) return socialManualComplete(type);
+        return (document.querySelector(`[data-source-manual="${type}"]`)?.value.trim() || '').length > 0;
+    });
+}
+function updateScanReadiness() {
+    const filled = new Set(validScanSources());
+    document.querySelectorAll('[data-source-card]').forEach(card => {
+        const type = card.dataset.sourceCard;
+        const input = card.querySelector('[data-source-url]');
+        const status = card.querySelector('[data-source-status]');
+        const mode = sourceMode(type);
+        card.dataset.mode = mode;
+        const hasValue = mode === 'url'
+            ? input.value.trim().length > 0
+            : SOCIAL_MANUAL_TYPES.has(type)
+                ? [...card.querySelectorAll('textarea, input[type="file"]')].some(element => element.type === 'file' ? element.files.length : element.value.trim().length)
+                : (card.querySelector(`[data-source-manual="${type}"]`)?.value.trim() || '').length > 0;
+        const isValid = filled.has(type);
+        card.dataset.filled = isValid ? 'true' : 'false';
+        const submitButton = card.querySelector(`[data-submit-source="${type}"]`);
+        if (submitButton) submitButton.disabled = !isValid;
+        if (!card.dataset.status || card.dataset.status === 'idle') {
+            status.textContent = isValid ? '可送出' : (hasValue ? '資料未完整' : '待填寫');
+            status.className = `tag ${isValid ? 'tag-blue' : hasValue ? 'tag-red' : ''}`;
+        }
+    });
+    const count = filled.size;
+    document.getElementById('scanRequirement').innerHTML = `<strong>有效資料來源 ${count}/3</strong>：每種來源可各自選擇自動 URL 或手動輸入。法律與內規會一起分析，但不計入三種來源門檻。`;
+    document.getElementById('globalScanBtn').disabled = count < 3;
+}
+function setDemoField(selector, value) {
+    const field = document.querySelector(selector);
+    if (!field) return;
+    field.value = value;
+    field.dispatchEvent(new Event('input', {bubbles: true}));
+}
+function demoCase(caseKey) {
+    return DEMO_CASES[caseKey] || DEMO_CASES[DEFAULT_DEMO_CASE_KEY];
+}
+function setSourceMode(sourceType, mode) {
+    const input = document.querySelector(`[data-source-mode="${sourceType}"][value="${mode}"]`);
+    if (!input) return;
+    input.checked = true;
+    input.dispatchEvent(new Event('change', {bubbles: true}));
+}
+async function demoImageFile(sourceType, index, caseKey = DEFAULT_DEMO_CASE_KEY) {
+    const activeCase = demoCase(caseKey);
+    const filename = (activeCase.imageFiles || [])[index - 1];
+    if (filename) {
+        try {
+            const response = await fetch(`/static/demo_sources/${filename}`);
+            if (response.ok) {
+                const blob = await response.blob();
+                if (blob.size > 1024) {
+                    return new File([blob], `${sourceType}-${filename}`, {type: blob.type || 'image/jpeg'});
+                }
+            }
+        } catch (_) {
+            // Fall back to an embedded valid PNG so demo filling still works offline.
+        }
+    }
+    const bytes = Uint8Array.from(atob(DEMO_IMAGE_BASE64), char => char.charCodeAt(0));
+    return new File([bytes], `${sourceType}-${caseKey}-demo-post-${index}.png`, {type: 'image/png'});
+}
+function setDemoFile(selector, file) {
+    const input = document.querySelector(selector);
+    if (!input || typeof DataTransfer === 'undefined') return;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change', {bubbles: true}));
+}
+async function fillSourceDemo(sourceType, caseKey = DEFAULT_DEMO_CASE_KEY) {
+    const activeCase = demoCase(caseKey);
+    const card = document.querySelector(`[data-source-card="${sourceType}"]`);
+    const url = activeCase.urls?.[sourceType] || '';
+    if (url) setDemoField(`[data-source-url="${sourceType}"]`, url);
+    if (SOCIAL_MANUAL_TYPES.has(sourceType)) {
+        setSourceMode(sourceType, 'manual');
+        for (const [index, content] of (activeCase.socialPosts?.[sourceType] || []).entries()) {
+            const postIndex = index + 1;
+            setDemoField(`[name="${sourceType}_post_content_${postIndex}"]`, content);
+            setDemoFile(`[name="${sourceType}_post_image_${postIndex}"]`, await demoImageFile(sourceType, postIndex, caseKey));
+        }
+    } else if (activeCase.manualText?.[sourceType]) {
+        setSourceMode(sourceType, 'manual');
+        setDemoField(`[data-source-manual="${sourceType}"]`, activeCase.manualText[sourceType]);
+    } else {
+        setSourceMode(sourceType, 'url');
+    }
+    if (card) card.dataset.status = 'idle';
+    updateScanReadiness();
+    showToast(`${sourceTypeLabel(sourceType)} 已填入「${activeCase.label}」示範資料。`);
+}
+function closeDemoCaseMenus(exceptMenu = null) {
+    document.querySelectorAll('.demo-case-menu').forEach(menu => {
+        if (menu === exceptMenu) return;
+        menu.hidden = true;
+        menu.dataset.placement = 'bottom';
+        const button = menu.parentElement?.querySelector('[data-fill-source-demo]');
+        if (button) button.setAttribute('aria-expanded', 'false');
+    });
+}
+function positionDemoCaseMenu(menu) {
+    menu.dataset.placement = 'bottom';
+    const rect = menu.getBoundingClientRect();
+    const bottomReserve = window.innerWidth <= 760 ? 76 : 16;
+    if (rect.bottom > window.innerHeight - bottomReserve) {
+        menu.dataset.placement = 'top';
+    }
+}
+function ensureDemoCaseMenu(button) {
+    const sourceType = button.dataset.fillSourceDemo;
+    let menu = button.parentElement.querySelector(`.demo-case-menu[data-demo-source="${sourceType}"]`);
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.className = 'demo-case-menu';
+    menu.dataset.demoSource = sourceType;
+    menu.hidden = true;
+    menu.setAttribute('role', 'menu');
+    Object.entries(DEMO_CASES).forEach(([caseKey, config]) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'demo-case-option';
+        option.dataset.demoCase = caseKey;
+        option.setAttribute('role', 'menuitem');
+        option.innerHTML = `<strong>${config.label}</strong><span>${config.description}</span>`;
+        option.addEventListener('click', async event => {
+            event.stopPropagation();
+            setBusy(option, true, '填入中');
+            try {
+                await fillSourceDemo(sourceType, caseKey);
+                closeDemoCaseMenus();
+            } catch (err) {
+                showToast(err, true);
+            } finally {
+                setBusy(option, false);
+            }
+        });
+        menu.appendChild(option);
+    });
+    button.insertAdjacentElement('afterend', menu);
+    return menu;
+}
+function toggleDemoCaseMenu(button) {
+    const menu = ensureDemoCaseMenu(button);
+    const shouldOpen = menu.hidden;
+    closeDemoCaseMenus(menu);
+    menu.hidden = !shouldOpen;
+    button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    if (shouldOpen) {
+        positionDemoCaseMenu(menu);
+        menu.querySelector('.demo-case-option')?.focus();
+    }
+}
+function setSourceOpen(sourceType, open) {
+    const card = document.querySelector(`[data-source-card="${sourceType}"]`);
+    const button = document.querySelector(`[data-toggle-source="${sourceType}"]`);
+    if (!card) return;
+    card.dataset.open = open ? 'true' : 'false';
+    if (button) button.textContent = open ? '收合' : '展開';
+}
+function fillAutoSocialPosts(sourceType, posts) {
+    for (let index = 1; index <= SOCIAL_POST_COUNT; index += 1) {
+        const field = document.querySelector(`[name="${sourceType}_auto_post_content_${index}"]`);
+        if (!field) continue;
+        field.value = posts[index - 1]?.content || '';
+        field.dispatchEvent(new Event('input', {bubbles: true}));
+    }
+}
+async function crawlSocialPreview(sourceType, button) {
+    const url = document.querySelector(`[data-source-url="${sourceType}"]`)?.value.trim() || '';
+    if (!validHttpUrl(url)) {
+        showToast('請先填入有效的社群 URL。', true);
+        return;
+    }
+    setSourceCardStatus(sourceType, 'running');
+    setBusy(button, true, '擷取中');
+    try {
+        const data = await apiFetch('/api/global-scan/social-preview', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({source_type: sourceType, url}),
+        });
+        fillAutoSocialPosts(sourceType, data.posts || []);
+        setSourceCardStatus(sourceType, 'ok');
+        showToast(`${sourceTypeLabel(sourceType)} 已回填 ${(data.posts || []).length} 篇貼文。`);
+        updateScanReadiness();
+    } catch (err) {
+        setSourceCardStatus(sourceType, 'error');
+        showToast(err, true);
+    } finally {
+        setBusy(button, false);
+    }
+}
+function setSourceCardStatus(type, status, error = '') {
+    const card = document.querySelector(`[data-source-card="${type}"]`);
+    const tag = document.querySelector(`[data-source-status="${type}"]`);
+    if (!card || !tag) return;
+    card.dataset.status = status;
+    if (status === 'ok') {
+        tag.className = 'tag tag-green';
+        tag.textContent = '已完成';
+    } else if (status === 'error') {
+        tag.className = 'tag tag-red';
+        tag.textContent = error ? '需補資料' : '失敗';
+    } else {
+        tag.className = 'tag tag-yellow';
+        tag.textContent = '掃描中';
+    }
+}
+function applyGlobalScanResult(result) {
+    const byId = {};
+    (result.created_sources || []).forEach(item => byId[item.id] = item.source_type);
+    (result.extracted || []).forEach(item => {
+        const type = item.source_type || byId[item.source_id];
+        if (!type || !document.querySelector(`[data-source-card="${type}"]`)) return;
+        setSourceCardStatus(type, item.status === 'extracted' ? 'ok' : 'error', item.error || '');
+    });
+}
+function nextStepText(extraction, analysis) {
+    if (extraction !== 'extracted') return '此來源尚未整理成功；若公開頁抓不到，請用手動補資料。';
+    if (analysis !== 'analyzed') return '此來源已整理，下一步是分析來源。';
+    return '此來源已完成，可納入品牌角色。';
+}
+function hasMojibake(value) {
+    return /[�\uF000-\uF8FF]|鞎|頛|蝭|蝚|摰||芸||/.test(String(value || ''));
+}
+function sourceDisplayTitle(source) {
+    const label = sourceTypeLabel(source.source_type);
+    const title = String(source.title || '').trim();
+    if (title && !hasMojibake(title)) return title;
+    const mode = source.metadata?.source_input_mode;
+    if (source.metadata?.manual_fallback) return `${label} 手動補資料`;
+    if (SOCIAL_MANUAL_TYPES.has(source.source_type) && source.input_kind === 'text') return `${label} 手動貼文`;
+    if (mode === 'manual' || source.input_kind === 'text') return `${label} 手動輸入`;
+    if (mode === 'url' || source.input_kind === 'url') return `${label} URL 擷取`;
+    return label;
+}
+function sourceSortRank(source) {
+    const extraction = source.latest_extraction?.status || 'not_extracted';
+    const analysis = source.latest_analysis?.status || 'not_analyzed';
+    if (analysis === 'analyzed') return 0;
+    if (extraction === 'extracted') return 1;
+    if (['error', 'failed', 'needs_manual_text'].includes(extraction) || ['error', 'failed'].includes(analysis)) return 3;
+    return 2;
+}
+function sortedSources(sources) {
+    return [...sources].sort((a, b) => {
+        const rank = sourceSortRank(a) - sourceSortRank(b);
+        if (rank) return rank;
+        return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+    });
+}
+function sourceOriginalText(source) {
+    return source.latest_extraction?.extracted_text || source.raw_text || '';
+}
+function sourceSummaryHtml(source) {
+    const result = source.latest_analysis?.result || {};
+    if (!source.latest_analysis || source.latest_analysis.status !== 'analyzed') {
+        return '<div class="muted fine">尚未完成分析，還沒有彙整版。</div>';
+    }
+    const scores = result.scores || {};
+    const scoreLine = Object.entries(scores).map(([key, value]) => {
+        const score = typeof value === 'object' ? value.score : value;
+        return `<span class="tag tag-blue">${escapeHtml(displayLabel(key))}: ${escapeHtml(score)}</span>`;
+    }).join('');
+    const list = (items = []) => items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+    return `
+        <div class="fine">${escapeHtml(result.source_summary || '此來源已完成分析。')}</div>
+        ${scoreLine ? `<div class="d-flex flex-wrap gap-2 mt-2">${scoreLine}</div>` : ''}
+        ${(result.keywords || []).length ? `<div class="fine fw-bold mt-2">關鍵字</div><div class="d-flex flex-wrap gap-2 mt-1">${result.keywords.map(k => `<span class="tag">${escapeHtml(k)}</span>`).join('')}</div>` : ''}
+        ${(result.tone_markers || []).length ? `<div class="fine fw-bold mt-2">語氣特徵</div><ul class="source-summary-list fine">${list(result.tone_markers)}</ul>` : ''}
+        ${(result.visual_evidence || []).length ? `<div class="fine fw-bold mt-2">圖片觀察</div><ul class="source-summary-list fine">${list(result.visual_evidence)}</ul>` : ''}
+        ${(result.risks_or_gaps || []).length ? `<div class="fine fw-bold mt-2">風險或缺口</div><ul class="source-summary-list fine">${list(result.risks_or_gaps)}</ul>` : ''}
+        ${(result.content_opportunities || []).length ? `<div class="fine fw-bold mt-2">內容機會</div><ul class="source-summary-list fine">${list(result.content_opportunities)}</ul>` : ''}
+    `;
+}
+function renderWorkflowHint(sources, summary) {
+    const hint = document.getElementById('workflowHint');
+    const total = sources.length;
+    const extracted = summary.extracted_count || 0;
+    const analyzed = summary.analyses_count || 0;
+    if (!total) {
+        hint.innerHTML = '<strong>尚未建立資料來源。</strong>請先展開來源卡，選擇自動擷取或手動輸入後送出。';
+    } else if (extracted < total) {
+        hint.innerHTML = `<strong>還有 ${total - extracted} 筆來源未整理。</strong>可重新整理，或對失敗來源使用手動補資料。`;
+    } else if (analyzed < total) {
+        hint.innerHTML = `<strong>還有 ${total - analyzed} 筆來源未分析。</strong>請分析來源或重跑品牌角色管線。`;
+    } else if (!summary.brand_dna_configured) {
+        hint.innerHTML = '<strong>來源已就緒。</strong>請建立品牌角色。';
+    } else {
+        hint.innerHTML = '<strong>流程完成。</strong>可前往品牌診斷或內容生成繼續使用。';
+    }
+}
+function renderDna(dna) {
+    const panel = document.getElementById('dnaPanel');
+    if (!dna) {
+        panel.innerHTML = '<div class="guide-note mb-0"><strong>尚未建立品牌角色</strong><div class="fine mt-1">送出並分析足夠資料來源後即可建立。</div></div>';
+        return;
+    }
+    const character = dna.brand_character || {};
+    const primary = dna.brand_archetype || {};
+    panel.innerHTML = `<div class="source-row"><div class="muted fine mb-1">目前使用中的品牌角色</div><strong>${escapeHtml(character.name || primary.role_name || dna.archetype || '品牌角色')}</strong><p class="muted fine mt-2">${escapeHtml(character.description || dna.summary || '')}</p><div class="d-flex flex-wrap gap-2">${(character.traits || dna.keywords || []).slice(0, 6).map(k => `<span class="tag tag-blue">${escapeHtml(k)}</span>`).join('')}</div></div>`;
+}
+function renderSources(sources) {
+    document.getElementById('sourceList').innerHTML = sources.length ? sortedSources(sources).map(source => {
+        const extraction = source.latest_extraction?.status || 'not_extracted';
+        const analysis = source.latest_analysis?.status || 'not_analyzed';
+        const error = source.latest_extraction?.error || source.latest_analysis?.error || '';
+        const canAnalyze = extraction === 'extracted';
+        const extracted = extraction === 'extracted';
+        const analyzed = analysis === 'analyzed';
+        const needsFallback = ['error', 'needs_manual_text'].includes(extraction);
+        return `<div class="source-row">
+            <div class="d-flex justify-content-between gap-2"><strong class="truncate">${escapeHtml(sourceDisplayTitle(source))}</strong><span class="tag">${escapeHtml(sourceTypeLabel(source.source_type))}</span></div>
+            <div class="muted fine mt-1">#${source.id} · ${escapeHtml(inputKindLabel(source.input_kind))}${source.metadata?.global_scan_id ? ` · 批次輸入 #${source.metadata.global_scan_id}` : ''}${source.metadata?.manual_fallback ? ' · 手動補資料' : ''}</div>
+            <div class="d-flex flex-wrap gap-2 my-2"><span class="tag ${statusTag(extraction)}">整理：${escapeHtml(statusLabel(extraction))}</span><span class="tag ${statusTag(analysis)}">分析：${escapeHtml(statusLabel(analysis))}</span></div>
+            ${error ? `<div class="text-danger fine mb-2">${escapeHtml(error)}</div>` : ''}
+            <div class="source-actions">
+                <button class="btn btn-sm btn-outline-custom" data-action="extract-source" onclick="extractSource(${source.id})">${extracted ? '重新整理' : '整理內容'}</button>
+                <button class="btn btn-sm btn-outline-custom" data-action="analyze-source" onclick="analyzeSource(${source.id})" ${canAnalyze ? '' : 'disabled'}>${analyzed ? '重新分析' : '分析來源'}</button>
+                <button class="btn btn-sm btn-outline-custom" type="button" onclick="toggleFallback(${source.id})" ${needsFallback ? '' : 'disabled'}>手動補資料</button>
+            </div>
+            <div class="source-detail-actions">
+                <button class="btn btn-sm btn-outline-custom" type="button" onclick="toggleSourcePanel(${source.id}, 'summary')" ${analyzed ? '' : 'disabled'}>彙整版</button>
+            </div>
+            <div class="source-detail-panel" id="sourceSummary-${source.id}">
+                <div class="fine fw-bold mb-2">LLM 彙整版</div>
+                ${sourceSummaryHtml(source)}
+            </div>
+            <div class="fallback-panel" id="fallback-${source.id}">
+                <textarea class="form-control" rows="5" id="fallbackContent-${source.id}" placeholder="貼上此來源的手動整理內容。"></textarea>
+                <button class="btn btn-sm btn-primary-gradient" type="button" onclick="submitFallback(${source.id})">送出補資料並分析</button>
+            </div>
+            <div class="next-step muted fine">${escapeHtml(nextStepText(extraction, analysis))}</div>
+        </div>`;
+    }).join('') : '<div class="muted">尚未新增資料來源。</div>';
+}
+function renderJobs(jobs) {
+    document.getElementById('jobList').innerHTML = jobs.length ? jobs.map(job => `<div class="job-row"><div class="d-flex justify-content-between gap-2"><strong>${escapeHtml(displayLabel(job.job_type))}</strong><span class="tag ${statusTag(job.status)}">${escapeHtml(statusLabel(job.status))}</span></div><div class="muted fine mt-1">處理編號 #${job.id} · ${escapeHtml(job.created_at || '')}</div>${job.error ? `<div class="text-danger fine mt-2">${escapeHtml(job.error)}</div>` : ''}</div>`).join('') : '<div class="muted">尚無處理紀錄。</div>';
+}
+function renderSystemLogs(logs) {
+    const levelClass = level => level === 'error' ? 'tag-red' : level === 'warning' ? 'tag-yellow' : 'tag-blue';
+    document.getElementById('systemLogList').innerHTML = logs.length ? logs.map(log => `<div class="job-row">
+        <div class="d-flex justify-content-between gap-2"><strong>${escapeHtml(log.event_type || 'event')}</strong><span class="tag ${levelClass(log.level)}">${escapeHtml(log.level || '')}</span></div>
+        <div class="muted fine mt-1">${escapeHtml(log.created_at || '')}${log.job_id ? ` · job #${log.job_id}` : ''}${log.source_id ? ` · source #${log.source_id}` : ''}</div>
+        <div class="fine mt-1">${escapeHtml(log.message || '')}</div>
+        ${log.error ? `<div class="text-danger fine mt-1">${escapeHtml(log.error)}</div>` : ''}
+    </div>`).join('') : '<div class="muted">尚無系統紀錄。</div>';
+}
+async function refreshAll() {
+    const [overview, sources, jobs, logs] = await Promise.all([apiFetch('/api/overview'), apiFetch('/api/sources'), apiFetch('/api/jobs'), apiFetch('/api/logs?limit=50')]);
+    applySubscription(overview.subscription);
+    const summary = overview.summary || {};
+    document.getElementById('metricSources').textContent = summary.data_sources_count || 0;
+    document.getElementById('metricExtracted').textContent = summary.extracted_count || 0;
+    document.getElementById('metricAnalyzed').textContent = summary.analyses_count || 0;
+    document.getElementById('metricDna').textContent = summary.brand_dna_configured ? '已建立' : '尚未';
+    renderWorkflowHint(sources.sources || [], summary);
+    renderDna(summary.brand_dna);
+    renderSources(sources.sources || []);
+    renderJobs(jobs.jobs || []);
+    renderSystemLogs(logs.logs || []);
+}
+async function runGlobalScan(event) {
+    event.preventDefault();
+    clearAppToasts();
+    const btn = document.getElementById('globalScanBtn');
+    const formData = new FormData(event.currentTarget);
+    formData.delete('selected_rules');
+    [...document.querySelectorAll('#legalRules input:checked')].forEach(input => formData.append('selected_rules', input.value));
+    formData.set('internal_rules', document.getElementById('internalRules').value.trim());
+    const activeTypes = validScanSources();
+    document.querySelectorAll('[data-source-url]').forEach(input => {
+        const card = document.querySelector(`[data-source-card="${input.dataset.sourceUrl}"]`);
+        if (card) card.dataset.status = 'idle';
+    });
+    setBusy(btn, true, '送出中');
+    activeTypes.forEach(type => setSourceCardStatus(type, 'running'));
+    try {
+        const data = await apiFetch('/api/global-scan/run', {
+            method: 'POST',
+            body: formData,
+        });
+        applyGlobalScanResult(data.result || {});
+        showToast(`資料輸入完成：新增 ${(data.result?.created_sources || []).length} 筆來源。`);
+        await refreshAll();
+    } catch (err) {
+        applyGlobalScanResult(err.payload?.job?.result || {});
+        showToast(err, true);
+        await refreshAll();
+    } finally {
+        setBusy(btn, false);
+        updateScanReadiness();
+    }
+}
+async function submitSingleSource(sourceType, button) {
+    clearAppToasts();
+    const card = document.querySelector(`[data-source-card="${sourceType}"]`);
+    if (card) card.dataset.status = 'idle';
+    setSourceCardStatus(sourceType, 'running');
+    setBusy(button, true, '送出中');
+    try {
+        const formData = new FormData(document.getElementById('globalScanForm'));
+        const data = await apiFetch(`/api/source-input/${sourceType}/submit`, {
+            method: 'POST',
+            body: formData,
+        });
+        setSourceCardStatus(sourceType, 'ok');
+        showToast(`${sourceTypeLabel(sourceType)} 已送出並完成整理。`);
+        await refreshAll();
+        return data;
+    } catch (err) {
+        setSourceCardStatus(sourceType, 'error');
+        showToast(err, true);
+        await refreshAll();
+        return null;
+    } finally {
+        setBusy(button, false);
+        updateScanReadiness();
+    }
+}
+async function runPipeline(event) {
+    const btn = event.currentTarget;
+    setBusy(btn, true, '建立中');
+    try {
+        // The API handles a few sources per request (Free-plan limits); keep calling until it reports done.
+        let data, cursor = 0, jobId = null, rounds = 0;
+        do {
+            data = await apiFetch('/api/pipeline/run', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cursor, job_id: jobId})});
+            cursor = data.result?.cursor ?? cursor;
+            jobId = data.job?.id ?? jobId;
+            if (!data.result?.done) setBusy(btn, true, `分析中（剩 ${data.result?.remaining ?? '?'} 筆）`);
+        } while (data.result && !data.result.done && ++rounds < 100);
+        showToast(data.result?.brand_dna?._reused ? '來源沒有變動，沿用目前的品牌角色。' : `品牌角色已建立，處理編號 #${data.job.id}`);
+        await refreshAll();
+    } catch (err) { showToast(err, true); }
+    finally { setBusy(btn, false); }
+}
+async function extractSource(id) {
+    try {
+        await apiFetch(`/api/sources/${id}/extract`, {method:'POST'});
+        await refreshAll();
+    } catch (err) { showToast(err, true); }
+}
+async function analyzeSource(id) {
+    try {
+        await apiFetch(`/api/sources/${id}/analyze`, {method:'POST'});
+        await refreshAll();
+    } catch (err) { showToast(err, true); }
+}
+function toggleFallback(id) {
+    document.getElementById(`fallback-${id}`)?.classList.toggle('open');
+}
+function toggleSourcePanel(id, panel) {
+    const target = document.getElementById(`sourceSummary-${id}`);
+    if (!target) return;
+    const willOpen = !target.classList.contains('open');
+    target.classList.toggle('open', willOpen);
+}
+async function submitFallback(id) {
+    const textarea = document.getElementById(`fallbackContent-${id}`);
+    const content = textarea?.value.trim() || '';
+    if (!content) {
+        showToast('請先貼上手動補資料內容。', true);
+        return;
+    }
+    try {
+        await apiFetch(`/api/sources/${id}/fallback`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({content, analyze: true}),
+        });
+        showToast('已新增手動補資料並完成分析。');
+        await refreshAll();
+    } catch (err) { showToast(err, true); }
+}
+function isSocialManualType(sourceType) {
+    return SOCIAL_MANUAL_TYPES.has(sourceType);
+}
+function setElementsDisabled(container, disabled) {
+    container?.querySelectorAll('input, textarea, select').forEach(element => {
+        element.disabled = disabled;
+    });
+}
+function updateManualSourceFields() {
+    const form = document.getElementById('sourceForm');
+    const sourceType = form.elements.source_type.value;
+    const isSocial = isSocialManualType(sourceType);
+    const socialPosts = document.getElementById('manualSocialPosts');
+    const socialHint = document.getElementById('manualSocialHint');
+    const generalContent = document.querySelector('[data-general-content]');
+    const generalFile = document.querySelector('[data-general-file]');
+    socialPosts.classList.toggle('open', isSocial);
+    socialHint.style.display = isSocial ? 'block' : 'none';
+    generalContent.style.display = isSocial ? 'none' : 'block';
+    generalFile.style.display = isSocial ? 'none' : 'block';
+    setElementsDisabled(socialPosts, !isSocial);
+    setElementsDisabled(generalContent, isSocial);
+    setElementsDisabled(generalFile, isSocial);
+    form.elements.title.placeholder = isSocial ? `${sourceTypeLabel(sourceType)} 5 篇貼文手動輸入` : '例如：Google 評論 2026 Q1';
+}
+function validateManualSocialPosts(form) {
+    if (!isSocialManualType(form.elements.source_type.value)) return true;
+    for (let index = 1; index <= SOCIAL_POST_COUNT; index += 1) {
+        const content = form.elements[`post_content_${index}`]?.value.trim();
+        const image = form.elements[`post_image_${index}`]?.files?.[0];
+        if (!content || !image) {
+            showToast(`請完整填寫第 ${index} 篇貼文內文並上傳圖片。`, true);
+            return false;
+        }
+    }
+    return true;
+}
+function setManualPanelOpen(open) {
+    const panel = document.getElementById('manualPanel');
+    panel.classList.toggle('open', open);
+    const btn = document.getElementById('manualToggleBtn');
+    btn.textContent = panel.classList.contains('open') ? '收合其他資料' : '新增其他資料';
+    btn.setAttribute('aria-expanded', panel.classList.contains('open') ? 'true' : 'false');
+    if (!panel.classList.contains('open')) return;
+    const form = document.getElementById('sourceForm');
+    updateManualSourceFields();
+    panel.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+    setTimeout(() => form.elements.source_type.focus(), 0);
+}
+document.querySelectorAll('[data-source-url]').forEach(input => input.addEventListener('input', () => {
+    const card = document.querySelector(`[data-source-card="${input.dataset.sourceUrl}"]`);
+    if (card) card.dataset.status = 'idle';
+    updateScanReadiness();
+}));
+document.querySelectorAll('[data-source-mode]').forEach(input => input.addEventListener('change', () => {
+    const card = document.querySelector(`[data-source-card="${input.dataset.sourceMode}"]`);
+    if (card) card.dataset.status = 'idle';
+    updateScanReadiness();
+}));
+document.querySelectorAll('[data-toggle-source]').forEach(button => {
+    button.addEventListener('click', () => {
+        const card = document.querySelector(`[data-source-card="${button.dataset.toggleSource}"]`);
+        setSourceOpen(button.dataset.toggleSource, card?.dataset.open !== 'true');
+    });
+});
+document.querySelectorAll('[data-crawl-social]').forEach(button => {
+    button.addEventListener('click', () => crawlSocialPreview(button.dataset.crawlSocial, button));
+});
+document.querySelectorAll('#globalScanForm textarea, #globalScanForm input[type="file"]').forEach(input => {
+    input.addEventListener('input', updateScanReadiness);
+    input.addEventListener('change', updateScanReadiness);
+});
+document.querySelectorAll('[data-fill-source-demo]').forEach(button => {
+    button.addEventListener('click', event => {
+        event.stopPropagation();
+        toggleDemoCaseMenu(button);
+    });
+});
+document.addEventListener('click', event => {
+    if (!event.target.closest('[data-fill-source-demo]') && !event.target.closest('.demo-case-menu')) {
+        closeDemoCaseMenus();
+    }
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeDemoCaseMenus();
+});
+document.querySelectorAll('[data-submit-source]').forEach(button => {
+    button.addEventListener('click', () => submitSingleSource(button.dataset.submitSource, button));
+});
+document.getElementById('globalScanForm').addEventListener('submit', runGlobalScan);
+document.getElementById('manualToggleBtn').addEventListener('click', () => {
+    const panel = document.getElementById('manualPanel');
+    setManualPanelOpen(!panel.classList.contains('open'));
+});
+document.getElementById('sourceForm').elements.source_type.addEventListener('change', updateManualSourceFields);
+document.getElementById('runPipelineBtn').addEventListener('click', runPipeline);
+document.getElementById('refreshBtn').addEventListener('click', () => refreshAll().catch(err => showToast(err, true)));
+document.getElementById('sourceForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!validateManualSocialPosts(form)) return;
+    const btn = event.submitter;
+    setBusy(btn, true, '新增中');
+    try {
+        await apiFetch('/api/sources', {method:'POST', body:new FormData(form)});
+        form.reset();
+        updateManualSourceFields();
+        showToast('手動資料已新增。');
+        await refreshAll();
+    } catch (err) { showToast(err, true); }
+    finally { setBusy(btn, false); }
+});
+document.addEventListener('DOMContentLoaded', () => {
+    updateScanReadiness();
+    updateManualSourceFields();
+    refreshAll().catch(err => showToast(err, true));
+});
+</script>
+{% endblock %}

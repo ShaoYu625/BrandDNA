@@ -1,0 +1,53 @@
+name = "branddna-foodtruck-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-05"
+workers_dev = true
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# OAuth callbacks carry one-time codes. Keep application logs without request URLs or outbound traces.
+[observability.logs]
+enabled = true
+invocation_logs = false
+
+[observability.traces]
+enabled = false
+
+[vars]
+ENVIRONMENT = "foodtruck-demo"
+# AI assistant of the truck workspace (drafts, Brand DNA, trends, English menu, OCR, push copy).
+# gpt-6-luna: US$0.10 input / US$0.50 output per 1M tokens. Each truck stops calling OpenAI at the monthly budget.
+TRUCK_AI_MODEL = "gpt-6-luna"
+TRUCK_AI_MONTHLY_BUDGET_USD = "2"
+# Secrets (wrangler secret put … --config api/wrangler.foodtruck.toml):
+#   OPENAI_API_KEY           enables the AI assistant (without it the workspace uses built-in templates)
+#   TRUCK_FLAGSHIP_PASSWORD  initial password of the 海海人生 account (only read when the account is first created)
+# Configure the values below only on the approved deployment.
+# TRUCK_MERCHANT_AUTH = "required"
+# TRUCK_PUBLIC_ORIGIN = "https://your-workspace.example"
+# META_APP_ID = ""
+# META_GRAPH_VERSION = "v27.0"
+# META_IG_CONFIG_ID = ""
+# META_FB_CONFIG_ID = ""
+# TRUCK_MERCHANT_KEY, META_APP_SECRET and META_WEBHOOK_VERIFY_TOKEN are Worker secrets.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "branddna-foodtruck-db"
+database_id = "581a043e-ab5b-4275-98de-998f36b724e7"
+migrations_dir = "./migrations"
+
+# Workspace state + realtime WebSockets. SQLite-backed classes are available on the Workers Free plan.
+[[durable_objects.bindings]]
+name = "TRUCK_WORKSPACE"
+class_name = "TruckWorkspace"
+
+[[migrations]]
+tag = "v1-truck-workspace"
+new_sqlite_classes = ["TruckWorkspace"]
+
+# Daily 03:17 Asia/Taipei: remove uploaded photos nothing references any more.
+[triggers]
+crons = ["17 19 * * *"]
